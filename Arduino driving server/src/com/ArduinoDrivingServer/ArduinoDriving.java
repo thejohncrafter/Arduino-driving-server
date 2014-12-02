@@ -18,12 +18,12 @@ public class ArduinoDriving {
 	 */
 	public static void main(String[] args){
 		
-		System.out.println("======================");
-		System.out.println("|arduino constrollers|");
-		System.out.println("|by Julien Marquet   |");
-		System.out.println("|created on          |");
-		System.out.println("|20 october 2014     |");
-		System.out.println("======================");
+		System.out.println("========================");
+		System.out.println("|arduino driving server|");
+		System.out.println("|by Julien Marquet     |");
+		System.out.println("|created on            |");
+		System.out.println("|20 october 2014       |");
+		System.out.println("========================");
 		
 		System.setProperty("user.dir", ArduinoDriving.class.getClassLoader().getResource(".").getPath().replace("%20", " "));
 		

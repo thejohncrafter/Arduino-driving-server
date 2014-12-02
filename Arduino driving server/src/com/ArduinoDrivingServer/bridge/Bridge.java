@@ -146,7 +146,7 @@ public class Bridge {
 				
 				try {
 					
-					bridges.put(id.getName(), new PortBridge(port));
+					bridges.put(id.getName(), new PortBridge(port, id.getName()));
 					System.out.println("port " + id.getName() + " is registered");
 					
 				} catch (IOException e){

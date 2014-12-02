@@ -115,7 +115,7 @@ public class MainFrame extends JFrame implements ServerEventListener {
 		this.setSize(700, 400); 
 		this.setMinimumSize(new Dimension(400, 300));
 		this.setLayout(new GridLayout(0, 2));
-		this.setTitle("arduino driving server 1.0");
+		this.setTitle("arduino driving server alpha 1.0.0");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		HTTPServer.addServerEventListener(this);
@@ -325,7 +325,7 @@ public class MainFrame extends JFrame implements ServerEventListener {
 				
 			});
 			
-			area.append("|| arduino constrollers\n");
+			area.append("|| arduino driving server\n");
 			area.append("|| by Julien Marquet\n");
 			area.append("|| created on 20 october 2014\n");
 			

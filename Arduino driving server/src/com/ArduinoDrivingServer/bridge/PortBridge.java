@@ -33,6 +33,12 @@ public class PortBridge implements SerialPortEventListener {
 	private SerialPort port;
 	
 	/**
+	 * This field stores the port's name 
+	 * (because <code>port.getName()</code> don't work under Windows).
+	 */
+	private String name;
+	
+	/**
 	 * This field stores the <code>DataInputStream</code> used to read datas.
 	 */
 	private Scanner in;
@@ -61,6 +67,8 @@ public class PortBridge implements SerialPortEventListener {
 	/**
 	 * This constructor uses the given port to define the fields <code>in</code> and <code>out</code>.
 	 * @param port The port to handle.
+	 * @param name The port's name 
+	 * (because <code>port.getName()</code> don't work under Windows).
 	 * @throws IOException If an IO exception occurates when getting port's <code>input</code> and <code>output stream</code> 
 	 * (but should rarely happen).
 	 * @throws InvalidHIDException If the <code>HID</code> of the hardware is invalid.
@@ -68,7 +76,7 @@ public class PortBridge implements SerialPortEventListener {
 	 * @see HID
 	 * @see HIDGetter
 	 */
-	public PortBridge(SerialPort port) throws IOException, TimeoutException, InvalidHIDException{
+	public PortBridge(SerialPort port, String name) throws IOException, TimeoutException, InvalidHIDException{
 		
 		remaining = 0;
 		in = new Scanner(port.getInputStream());
@@ -88,6 +96,8 @@ public class PortBridge implements SerialPortEventListener {
 			e.printStackTrace(); // should never happen
 			
 		}
+		
+		this.name = name;
 		
 		if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
 			//TODO : better solution here
@@ -296,6 +306,17 @@ public class PortBridge implements SerialPortEventListener {
 			hid = new HIDGetter(this).getHID();
 			
 		}
+		
+	}
+	
+	/**
+	 * This method is used to get the port's name 
+	 * (because <code>port.getName()</code> don't work under Windows).
+	 * @return
+	 */
+	public String getName(){
+		
+		return name;
 		
 	}
 	

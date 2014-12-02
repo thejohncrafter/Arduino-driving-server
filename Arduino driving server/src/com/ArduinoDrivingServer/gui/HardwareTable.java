@@ -57,7 +57,7 @@ public class HardwareTable extends JTable {
 			
 			for(int i = 0; i < bridges.length; i++){
 				
-				ports[i]    = bridges[i].getPort().getName().substring(bridges[i].getPort().getName().length() - 4);
+				ports[i]    = bridges[i].getName();
 				hids[i]     = bridges[i].getHID().hid;
 				names[i]    = bridges[i].getHID().name;
 				creators[i] = bridges[i].getHID().creator;

@@ -59,7 +59,7 @@ public class RequestHandler implements HttpHandler {
 			
 			for(int i = 0; i < bridges.length; i++){
 				
-				ports[i]    = bridges[i].getPort().getName();
+				ports[i]    = bridges[i].getName();
 				hids[i]     = bridges[i].getHID().hid;
 				names[i]    = bridges[i].getHID().name;
 				creators[i] = bridges[i].getHID().creator;
@@ -112,7 +112,7 @@ public class RequestHandler implements HttpHandler {
 			if(bridge == null){
 				
 				answer(exc, "NOPORT");
-				System.out.println("Error : arg 2 don't refer to a port !");
+				System.out.println("Error : arg 2 don't refer to a port : " + port);
 				break;
 				
 			}
