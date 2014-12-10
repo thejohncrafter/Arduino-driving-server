@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
+import com.ArduinoDrivingServer.bridge.AbstractPortBridge;
 import com.ArduinoDrivingServer.bridge.Bridge;
-import com.ArduinoDrivingServer.bridge.PortBridge;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -50,7 +50,7 @@ public class RequestHandler implements HttpHandler {
 			String answer = "{ \"HIDS\" : [";
 			
 			String[][] datas;
-			PortBridge[] bridges = Bridge.getbridges().values().toArray(new PortBridge[Bridge.getbridges().size()]);
+			AbstractPortBridge[] bridges = Bridge.getbridges().values().toArray(new AbstractPortBridge[Bridge.getbridges().size()]);
 			
 			String[] ports    = new String[Bridge.getbridges().size()];
 			String[] hids     = new String[Bridge.getbridges().size()];
@@ -59,7 +59,7 @@ public class RequestHandler implements HttpHandler {
 			
 			for(int i = 0; i < bridges.length; i++){
 				
-				ports[i]    = bridges[i].getName();
+				ports[i]    = bridges[i].getPortName();
 				hids[i]     = bridges[i].getHID().hid;
 				names[i]    = bridges[i].getHID().name;
 				creators[i] = bridges[i].getHID().creator;
@@ -107,7 +107,7 @@ public class RequestHandler implements HttpHandler {
 				
 			}
 			
-			PortBridge bridge = Bridge.getPortBridge(port);
+			AbstractPortBridge bridge = Bridge.getPortBridge(port);
 			
 			if(bridge == null){
 				
@@ -143,6 +143,7 @@ public class RequestHandler implements HttpHandler {
 	    exc.sendResponseHeaders(200, answ.length());
 	    OutputStream os = exc.getResponseBody();
 	    os.write(answ.getBytes());
+	    os.flush();
 	    os.close();
 		
 	}

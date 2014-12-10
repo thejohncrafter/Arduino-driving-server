@@ -25,7 +25,7 @@ import com.ArduinoDrivingServer.bridge.HID.InvalidHIDException;
  * @author Julien Marquet
  *
  */
-public class PortBridge implements SerialPortEventListener {
+public class PortBridge extends AbstractPortBridge implements SerialPortEventListener {
 	
 	/**
 	 * This field stores the handled <code>SerialPort</code>.
@@ -36,7 +36,7 @@ public class PortBridge implements SerialPortEventListener {
 	 * This field stores the port's name 
 	 * (because <code>port.getName()</code> don't work under Windows).
 	 */
-	private String name;
+	private String portName;
 	
 	/**
 	 * This field stores the <code>DataInputStream</code> used to read datas.
@@ -76,7 +76,9 @@ public class PortBridge implements SerialPortEventListener {
 	 * @see HID
 	 * @see HIDGetter
 	 */
-	public PortBridge(SerialPort port, String name) throws IOException, TimeoutException, InvalidHIDException{
+	public PortBridge(SerialPort port, String portName) throws IOException, TimeoutException, InvalidHIDException{
+		
+		super(false);
 		
 		remaining = 0;
 		in = new Scanner(port.getInputStream());
@@ -97,7 +99,7 @@ public class PortBridge implements SerialPortEventListener {
 			
 		}
 		
-		this.name = name;
+		this.portName = portName;
 		
 		if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
 			//TODO : better solution here
@@ -126,9 +128,7 @@ public class PortBridge implements SerialPortEventListener {
 		
 	}
 	
-	/**
-	 * This method is used to close the <code>PortBridge</code>.
-	 */
+	@Override
 	public void close(){
 		
 		port.removeEventListener();
@@ -136,25 +136,14 @@ public class PortBridge implements SerialPortEventListener {
 		
 	}
 	
-	/**
-	 * This method is used to get the HID (HardwareIDentifier) of the port.
-	 * @return The HID of the port.
-	 * @see HIDGetter
-	 * @see HIDGetter#getHID()
-	 * @see HID 
-	 */
+	@Override
 	public HID getHID(){
 		
 		return hid;
 		
 	}
 	
-	/**
-	 * This method is used to read a line from the input stream.<br>
-	 * It waits for data and returns the read line.
-	 * @return The read line.
-	 * @throws InterruptedException If the thread is interrupted when waiting for data.
-	 */
+	@Override
 	public String readLine() throws InterruptedException{
 		
 		remaining++;
@@ -179,14 +168,7 @@ public class PortBridge implements SerialPortEventListener {
 		
 	}
 	
-	/**
-	 * This method is used to read a line from the input stream.<br>
-	 * It sends the given line, waits for data and returns the read line.<br>
-	 * Calling this method is the same as calling <code>send(line); realLine();</code>.
-	 * @param lin The line to send.
-	 * @return The read line.
-	 * @throws InterruptedException If the thread is interrupted when waiting for data.
-	 */
+	@Override
 	public String readLine(String line) throws InterruptedException{
 		
 		send(line);
@@ -195,15 +177,7 @@ public class PortBridge implements SerialPortEventListener {
 		
 	}
 	
-	/**
-	 * This method is used to read a line from the input stream until a given timeout.<br>
-	 * It sends the given line, waits for data and returns the read line.<br>
-	 * Calling this method is the same as calling <code>send(line); realLine();</code>.
-	 * @param lin The line to send.
-	 * @param timeout The maximum time to wait in milliseconds.
-	 * @return The read line.
-	 * @throws InterruptedException If the thread is interrupted when waiting for data.
-	 */
+	@Override
 	public String readLine(String line, long timeout) throws InterruptedException{
 		
 		/**
@@ -216,13 +190,7 @@ public class PortBridge implements SerialPortEventListener {
 		
 	}
 	
-	/**
-	 * This method is used to read a line from the input stream until a given timeout.<br>
-	 * It waits for data and returns the read line.
-	 * @param timeout The maximum time to wait in milliseconds.
-	 * @return The read line.
-	 * @throws InterruptedException If the thread is interrupted when waiting for data.
-	 */
+	@Override
 	public String readLine(long timeout) throws InterruptedException{
 		
 		remaining++;
@@ -247,10 +215,7 @@ public class PortBridge implements SerialPortEventListener {
 		
 	}
 	
-	/**
-	 * This method is used to send a request through the port.
-	 * @param request The request to send.
-	 */
+	@Override
 	public void send(String request){
 		
 		out.println(request);
@@ -312,25 +277,13 @@ public class PortBridge implements SerialPortEventListener {
 	/**
 	 * This method is used to get the port's name 
 	 * (because <code>port.getName()</code> don't work under Windows).
-	 * @return
+	 * @return The port's name.
 	 */
-	public String getName(){
+	public String getPortName(){
 		
-		return name;
+		return portName;
 		
 	}
-	
-	/**
-	 * This method is used to get the input stream of the <code>PortBridge</code>.
-	 * @return The input stream of the <code>PortBridge</code>.
-	 */
-	public Scanner getIn(){return in;}
-	
-	/**
-	 * This method is used to get the output stream of the <code>PortBridge</code>.
-	 * @return The output stream of the <code>PortBridge</code>.
-	 */
-	public PrintStream getOut(){return out;}
 	
 	/**
 	 * This method is used to get the handled <code>SerialPort</code>.

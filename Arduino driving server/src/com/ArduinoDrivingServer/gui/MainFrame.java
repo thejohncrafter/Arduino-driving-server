@@ -12,11 +12,16 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
@@ -24,6 +29,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.DefaultCaret;
 
 import com.ArduinoDrivingServer.bridge.Bridge;
+import com.ArduinoDrivingServer.bridge.VirtualPort;
+import com.ArduinoDrivingServer.gui.VirtualPort.VPCreationDialog;
+import com.ArduinoDrivingServer.gui.VirtualPort.VirtualPortView;
 import com.ArduinoDrivingServer.server.HTTPServer;
 import com.ArduinoDrivingServer.server.ServerEventListener;
 
@@ -44,6 +52,16 @@ public class MainFrame extends JFrame implements ServerEventListener {
 	 * This field stores an instances of the frame.
 	 */
 	private static MainFrame instance;
+	
+	/**
+	 * The panel located on the left (the buttons panel).
+	 */
+	private JPanel left;
+	
+	/**
+	 * The panel located on the right (the logs panel).
+	 */
+	private JPanel right;
 	
 	/**
 	 * This <code>JLabel</code> is used to show the server's state.
@@ -120,9 +138,132 @@ public class MainFrame extends JFrame implements ServerEventListener {
 		
 		HTTPServer.addServerEventListener(this);
 		
-		{
+		{ // The menu bar
 			
-			JPanel left = new JPanel();
+			JMenuBar menu = new JMenuBar();
+			
+			JMenu display = new JMenu("display");
+			JMenu emulators = new JMenu("emulators");
+			
+			{ // display
+				
+				JRadioButtonMenuItem all = new JRadioButtonMenuItem("all");
+				JRadioButtonMenuItem buttons = new JRadioButtonMenuItem("buttons only");
+				JRadioButtonMenuItem logs = new JRadioButtonMenuItem("logs only");
+				
+				ButtonGroup group = new ButtonGroup();
+				group.add(all);
+				group.add(buttons);
+				group.add(logs);
+				
+				all.setSelected(true);
+				
+				all.addActionListener(new ActionListener(){
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						
+						instance.remove(left);
+						instance.remove(right);
+						instance.setLayout(new GridLayout(0, 2));
+						instance.add(left);
+						instance.add(right);
+						instance.revalidate();
+						
+					}
+					
+				});
+				
+				buttons.addActionListener(new ActionListener(){
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						
+						instance.remove(left);
+						instance.remove(right);
+						instance.setLayout(new BorderLayout());
+						instance.add(left, BorderLayout.CENTER);
+						instance.revalidate();
+						
+					}
+					
+				});
+				
+				logs.addActionListener(new ActionListener(){
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						
+						instance.remove(left);
+						instance.remove(right);
+						instance.setLayout(new BorderLayout());
+						instance.add(right, BorderLayout.CENTER);
+						instance.revalidate();
+						
+					}
+					
+				});
+				
+				display.add(all);
+				display.add(buttons);
+				display.add(logs);
+				
+			}
+			
+			{ // emulators
+				
+				JMenuItem add = new JMenuItem("add");
+				
+				add.addActionListener(new ActionListener(){
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						
+						if(Bridge.isClosed()){
+							
+							System.out.println("User asked for creating a new VirtualPort, but Bridge is closed !");
+							
+							JOptionPane.showMessageDialog(instance,
+									"You can't create a new virtual port because Bridge is closed !",
+									"Error", JOptionPane.ERROR_MESSAGE);
+							
+							return;
+							
+						}
+						
+						System.out.println("Adding a new VirtualPort...");
+						
+						VirtualPort vp = VPCreationDialog.askForVirtualPort();
+						
+						if(vp != null){
+							
+							VirtualPortView vpv = new VirtualPortView(vp);
+							
+							vpv.setVisible(true);
+							table.update();
+							
+							System.out.println("VirtualPort added !");
+							
+						}
+						
+					}
+					
+				});
+				
+				emulators.add(add);
+				
+			}
+			
+			menu.add(display);
+			menu.add(emulators);
+			
+			this.setJMenuBar(menu);
+			
+		}
+		
+		{ // the main GUI
+			
+			left = new JPanel();
 			left.setLayout(new BorderLayout());
 			
 			{ // the server informations
@@ -299,7 +440,7 @@ public class MainFrame extends JFrame implements ServerEventListener {
 		
 		{ // the logging JTextArea
 			
-			JPanel right = new JPanel();
+			right = new JPanel();
 			right.setLayout(new BorderLayout());
 			right.setBorder(BorderFactory.createTitledBorder("Logs"));
 			

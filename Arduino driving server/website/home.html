@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Arduino driving server</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <script language="javascript" src="jsapi/api.js"></script>
+    </head>
+    <body>
+        <div id="onDisconnected">
+            <h1>Waiting for server datas...</h1>
+        </div>
+        <div id="onConnected">
+            <iframe id="iframe" src="" onload="javascript:answer()">Your browser does not support IFrames.</iframe>
+            <div class="block">
+                <H1><strong>Arduino driving server</strong></H1>
+                Welcome, user !<br>
+                You want to use your hardwares ?<br>
+                See the list of available drivers, select what you want to use, and enjoy !
+                <ul id="drivers"></ul>
+            </div>
+            <iframe id="frame" src=""></iframe>
+            <div id="footerhitbox"></div>
+            <footer id="footer">
+                Created by Julien Marquet (thejohncrafter).<br>
+                This software is <strong>free</strong> and you can use it as you wish.<br>
+                If you paid this software, the one who sold it to you <strong>did not respect the law</strong>.
+            </footer>
+            <script type="text/javascript">
+
+                // ========== IFRAME ==========
+
+                var frame = document.getElementById('frame');
+                frame.height = 0;
+
+                function load(page){
+
+                    frame.src = page + '/driver.html';
+
+                }
+
+                function setIframeHeight(height){
+
+                    console.log('changing iframe height to ' + height);
+                    document.body.height = document.getElementById('onDisconnected') + height - frame.height;
+                    frame.height = height;
+
+                }
+
+                // ========== DRIVERS UL ==========
+
+                var driversUL = document.getElementById('drivers');
+
+                function setupDrivers(){
+
+                    init();
+                    getHIDs(function(answ){
+                        
+                        if(HIDs.HIDS.length == 0){
+                            
+                            driversUL.innerHTML = 'There is no hardware connected to the server computer !';
+                            
+                            loaded();
+                            return;
+
+                        }
+
+                        for(var i = 0; i < HIDs.HIDS.length; i++){
+
+                            var v = HIDs.HIDS[i];
+
+                            driversUL.innerHTML += '<li><a href="javascript:load(\'' + v.NAME + '\')">' + v.NAME + '</a></li>'
+
+                        }
+                        
+                        loaded();
+
+                    });
+
+                }
+
+                setupDrivers();
+
+            </script>
+        </div>
+    </body>
+</html>

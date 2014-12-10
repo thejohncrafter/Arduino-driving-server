@@ -25,7 +25,7 @@ public class Bridge {
 	 * This <code>HashMap</code> stores all the available <code>PortBridge</code>s.
 	 * @see HashMap
 	 */
-	private static HashMap<String, PortBridge> bridges = new HashMap<String, PortBridge>();
+	private static HashMap<String, AbstractPortBridge> bridges = new HashMap<String, AbstractPortBridge>();
 	
 	/**
 	 * This field is used by the method <code>isClosed()</code>
@@ -93,7 +93,10 @@ public class Bridge {
 					
 					try {
 						
-						Bridge.bridges.get(id.getName()).updateHID();
+						AbstractPortBridge b = bridges.get(id.getName());
+						
+						if(b instanceof PortBridge)
+							((PortBridge) b).updateHID();
 						
 					} catch (TimeoutException | InvalidHIDException e) {
 						
@@ -179,9 +182,20 @@ public class Bridge {
 	 * @return The <code>PortBridge</code>.
 	 * @see bridges
 	 */
-	public static PortBridge getPortBridge(String port){
+	public static AbstractPortBridge getPortBridge(String port){
 		
 		return bridges.get(port);
+		
+	}
+	
+	/**
+	 * This method is used to add a <code>bridge</code> to the list of bridges.<br>
+	 * It is exactly like calling <code>Bridge.getbridges().put(bridge.getName(), bridge);</code>.
+	 * @param bridge The bridge to add.
+	 */
+	public static void addPortBridge(AbstractPortBridge bridge){
+		
+		bridges.put(bridge.getPortName(), bridge);
 		
 	}
 	
@@ -189,11 +203,10 @@ public class Bridge {
 	 * This method is called by <code>PortBridge</code> when the hardware is disconnected.
 	 * @param pb The <code>PortBridge</code>.
 	 */
-	static void fireDisconnected(PortBridge pb){
+	public static void fireDisconnected(AbstractPortBridge pb){
 		
-		String name = pb.getPort().getName();
-		bridges.get(name).close();
-		bridges.remove(name);
+		pb.close();
+		bridges.remove(pb.getPortName());
 		
 	}
 	
@@ -201,7 +214,7 @@ public class Bridge {
 	 * This method is used to get the list of the available bridges.
 	 * @return The list of the available bridges.
 	 */
-	public static HashMap<String, PortBridge> getbridges(){return bridges;}
+	public static HashMap<String, AbstractPortBridge> getbridges(){return bridges;}
 	
 	/**
 	 * This Method is used to know if the <code>Bridge</code> is closed.

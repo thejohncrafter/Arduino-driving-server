@@ -99,7 +99,16 @@ public class HTTPServer {
 					} catch (InterruptedException e) {
 						
 						System.out.println("Refresher interrupted !");
-						break;
+						return;
+						
+					}
+					
+					if(HTTPServer.isClosed()){ // WTF bug fix
+						
+						System.out.println("Server closed !");
+						System.out.println("Stopping thread...");
+						
+						return;
 						
 					}
 					
