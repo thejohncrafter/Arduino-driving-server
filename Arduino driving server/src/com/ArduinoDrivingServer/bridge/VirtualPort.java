@@ -1,7 +1,8 @@
 package com.ArduinoDrivingServer.bridge;
 
+import java.io.File;
+
 import com.ArduinoDrivingServer.bridge.HID.HID;
-import com.ArduinoDrivingServer.gui.VirtualPort.VirtualPortView;
 
 /**
  * This class is used to create a <code>"virtual"</code> port :
@@ -9,7 +10,13 @@ import com.ArduinoDrivingServer.gui.VirtualPort.VirtualPortView;
  * @author Julien Marquet
  * 
  */
-public class VirtualPort extends AbstractPortBridge {
+public class VirtualPort extends AbstractBridge {
+	
+	//TODO : fully implement this class
+	/**
+	 * This <code>File</code> is used to log.
+	 */
+	private File logFile;
 	
 	/**
 	 * This field stores the <code>HID</code> of emulated hardware.
@@ -24,15 +31,10 @@ public class VirtualPort extends AbstractPortBridge {
 	private String portName;
 	
 	/**
-	 * This field stores the port's current view.
-	 * @see VirtualPortView
-	 */
-	private VirtualPortView view;
-	
-	/**
-	 * This constructor defines the name of the port.
+	 * This constructor defines the name and the HID of the port.
 	 * It also defines <code>virtual</code> to <code>true</code> on <code>super</code>.
 	 * @param name The name of the emulated port.
+	 * @param hid the port's HID.
 	 */
 	public VirtualPort(String portName, HID hid) {
 		
@@ -40,6 +42,25 @@ public class VirtualPort extends AbstractPortBridge {
 		
 		this.portName = portName;
 		this.hid = hid;
+		
+		Bridge.addPortBridge(this);
+		
+	}
+	
+	/**
+	 * This constructor defines the name, the HID and the log file of the port.
+	 * It also defines <code>virtual</code> to <code>true</code> on <code>super</code>.
+	 * @param name The name of the emulated port.
+	 * @param hid the port's HID.
+	 * @param logFile the file where logging.
+	 */
+	public VirtualPort(String portName, HID hid, File logFile) {
+		
+		super(true);
+		
+		this.portName = portName;
+		this.hid = hid;
+		this.logFile = logFile;
 		
 		Bridge.addPortBridge(this);
 		
@@ -62,35 +83,35 @@ public class VirtualPort extends AbstractPortBridge {
 	@Override
 	public String readLine() throws InterruptedException {
 		
-		return view.dataNeeded("");
+		return null;
 		
 	}
 	
 	@Override
 	public String readLine(long timeout) throws InterruptedException {
 		
-		return view.dataNeeded("");
+		return null;
 		
 	}
 	
 	@Override
 	public String readLine(String line) throws InterruptedException {
 		
-		return view.dataNeeded(line);
+		return null;
 		
 	}
 	
 	@Override
 	public String readLine(String line, long timeout) throws InterruptedException {
 		
-		return view.dataNeeded(line);
+		return null;
 		
 	}
 	
 	@Override
 	public void send(String request) {
 		
-		view.dataSent(request);
+		
 		
 	}
 	
@@ -100,18 +121,22 @@ public class VirtualPort extends AbstractPortBridge {
 	@Override
 	public void close(){
 		
-		view.setVisible(false);
+		
 		
 	}
 	
 	/**
-	 * This method is set the view of the <code>VirtualPort</code>.
-	 * @param view The new view.
+	 * This method is used to get the <code>log file</code>.
+	 * @return The <code>log file</code>.
+	 * @see logFile
 	 */
-	public void setView(VirtualPortView view){
+	public File getLogFile(){
 		
-		this.view = view;
+		return logFile;
 		
 	}
+	
+	@Override
+	public void updateHID() throws Exception {/* Nothing to do... */}
 	
 }

@@ -24,4 +24,31 @@ public class HID {
 	 */
 	public String creator;
 	
+	public static HID createHID(String hid) throws InvalidHIDException{
+		
+		if(!hid.contains("#"))
+			throw new InvalidHIDException();
+		
+		String creator = hid.substring(0, hid.indexOf('#'));
+		String name = hid.substring(hid.indexOf('#') + 1);
+		
+		HID theHID = new HID();
+		theHID.hid =  hid;
+		theHID.creator = creator;
+		theHID.name = name;
+		
+		return theHID;
+		
+	}
+	
+	/**
+	 * Returns the <code>HID</code>.
+	 * @see hid
+	 */
+	public String toString(){
+		
+		return hid;
+		
+	}
+	
 }

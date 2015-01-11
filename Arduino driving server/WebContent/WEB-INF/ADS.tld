@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<taglib>
+	<tlib-version>1.0</tlib-version>
+	<jsp-version>2.0</jsp-version>
+	<short-name>ADS TLD</short-name>
+	<tag>
+		<name>ifPerm</name>
+		<tag-class>com.ArduinoDrivingServer.web.tags.PermissionsTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>minValue</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>permission</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>invert</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+	<tag>
+		<name>forbiddenMsg</name>
+		<tag-class>com.ArduinoDrivingServer.web.tags.ForbiddenMsgTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>message</name>
+			<required>true</required>
+		</attribute>
+	</tag>
+	<tag>
+		<name>isUserCo</name>
+		<tag-class>com.ArduinoDrivingServer.web.tags.IsConnectedTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>invert</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+	<tag>
+		<name>username</name>
+		<tag-class>com.ArduinoDrivingServer.web.tags.UsernameTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+	<tag>
+		<name>compress</name>
+		<tag-class>com.ArduinoDrivingServer.web.tags.CompressTag</tag-class>
+		<body-content>JSP</body-content>
+	</tag>
+</taglib>

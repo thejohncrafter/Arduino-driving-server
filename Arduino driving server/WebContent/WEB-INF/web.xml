@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<web-app>
+	<display-name>Arduino-driving-server</display-name>
+	<servlet>
+		<servlet-name>Arduino driving server</servlet-name>
+		<servlet-class>com.ArduinoDrivingServer.web.servlets.ArduinoDriving</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>Arduino driving server - sessions</servlet-name>
+		<servlet-class>com.ArduinoDrivingServer.web.servlets.SessionServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>Arduino driving server - edit</servlet-name>
+		<servlet-class>com.ArduinoDrivingServer.web.servlets.EditServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>Arduino driving server - remote</servlet-name>
+		<servlet-class>com.ArduinoDrivingServer.web.servlets.RemoteServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name>Arduino driving server</servlet-name>
+	    <url-pattern>/ADS</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>Arduino driving server - sessions</servlet-name>
+	    <url-pattern>/connect</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>Arduino driving server - edit</servlet-name>
+	    <url-pattern>/edit</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>Arduino driving server - remote</servlet-name>
+	    <url-pattern>/remote</url-pattern>
+	</servlet-mapping>
+</web-app>

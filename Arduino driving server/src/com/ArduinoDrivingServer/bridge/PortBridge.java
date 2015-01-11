@@ -1,14 +1,12 @@
 package com.ArduinoDrivingServer.bridge;
 
-import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
-
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Scanner;
-import java.util.TooManyListenersException;
 import java.util.concurrent.TimeoutException;
+
+import jssc.SerialPort;
+import jssc.SerialPortEvent;
+import jssc.SerialPortEventListener;
+import jssc.SerialPortException;
 
 import com.ArduinoDrivingServer.bridge.HID.HID;
 import com.ArduinoDrivingServer.bridge.HID.HIDGetter;
@@ -25,7 +23,13 @@ import com.ArduinoDrivingServer.bridge.HID.InvalidHIDException;
  * @author Julien Marquet
  *
  */
-public class PortBridge extends AbstractPortBridge implements SerialPortEventListener {
+public class PortBridge extends AbstractBridge implements SerialPortEventListener {
+	
+	/**
+	 * This field stores the exception that happened in <code>readLine()</code> 
+	 * if an error happened.
+	 */
+	private SerialPortException readException;
 	
 	/**
 	 * This field stores the handled <code>SerialPort</code>.
@@ -37,16 +41,6 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	 * (because <code>port.getName()</code> don't work under Windows).
 	 */
 	private String portName;
-	
-	/**
-	 * This field stores the <code>DataInputStream</code> used to read datas.
-	 */
-	private Scanner in;
-	
-	/**
-	 * This field stores the <code>DataOutputStream</code> used to write datas.
-	 */
-	private PrintStream out;
 	
 	/**
 	 * This field stores the <code>HID</code> of the hardware.
@@ -65,6 +59,11 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	private int remaining;
 	
 	/**
+	 * This field stores the received String while it contains any \n.
+	 */
+	private String receiveCache;
+	
+	/**
 	 * This constructor uses the given port to define the fields <code>in</code> and <code>out</code>.
 	 * @param port The port to handle.
 	 * @param name The port's name 
@@ -73,52 +72,30 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	 * (but should rarely happen).
 	 * @throws InvalidHIDException If the <code>HID</code> of the hardware is invalid.
 	 * @throws TimeoutException Id the timeout ends when getting hardware's <code>HID</code>.
+	 * @throws SerialPortException If a <code>SerialPortException</code> happens (should never happen).
+	 * @throws InterruptedException If the thread is interrupted when waiting for HID (should never happen).
 	 * @see HID
 	 * @see HIDGetter
 	 */
-	public PortBridge(SerialPort port, String portName) throws IOException, TimeoutException, InvalidHIDException{
+	public PortBridge(SerialPort port, String portName) throws IOException, TimeoutException, InvalidHIDException, SerialPortException, InterruptedException{
 		
 		super(false);
 		
 		remaining = 0;
-		in = new Scanner(port.getInputStream());
-		out = new PrintStream(port.getOutputStream(), true);
+		receiveCache = "";
 		this.port = port;
 		
-		try {
-			
-			port.removeEventListener();
-			port.addEventListener(this);
-			port.notifyOnBreakInterrupt(true);
-			port.notifyOnDataAvailable(true);
-			port.notifyOnCTS(true);
-			
-		} catch (TooManyListenersException e) {
-			
-			e.printStackTrace(); // should never happen
-			
-		}
+		port.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+		
+		port.addEventListener(this);
 		
 		this.portName = portName;
 		
 		if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
-			//TODO : better solution here
 			
-			/*
-			 * Linux BUG :
-			 * The hardware needs time between SerialPort initalization and sending data...
-			 * Someone has an idea ?
-			 */
-			
-			try {
-				
-				Thread.sleep(3000);
-				
-			} catch (InterruptedException e) {
-				
-				e.printStackTrace();
-				
-			}
+			// Linux WTF fix
+			//TODO : Better method for this fix...
+			Thread.sleep(3000);
 			
 		}
 		
@@ -129,10 +106,9 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	}
 	
 	@Override
-	public void close(){
+	public void close() throws SerialPortException{
 		
-		port.removeEventListener();
-		port.close();
+		port.closePort();
 		
 	}
 	
@@ -144,7 +120,7 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	}
 	
 	@Override
-	public String readLine() throws InterruptedException{
+	public String readLine() throws InterruptedException, SerialPortException{
 		
 		remaining++;
 		
@@ -156,6 +132,13 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 		
 		remaining--;
 		
+		if(readException != null){
+			
+			readException = null;
+			throw readException;
+			
+		}
+		
 		if(remaining == 0){
 			
 			String toReturn = lastSent;
@@ -169,7 +152,7 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	}
 	
 	@Override
-	public String readLine(String line) throws InterruptedException{
+	public String readLine(String line) throws InterruptedException, SerialPortException{
 		
 		send(line);
 		
@@ -178,11 +161,7 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	}
 	
 	@Override
-	public String readLine(String line, long timeout) throws InterruptedException{
-		
-		/**
-		 * Not read error under Linux fixed by waiting 3 seconds.
-		 */
+	public String readLine(String line, long timeout) throws InterruptedException, SerialPortException{
 		
 		send(line);
 		
@@ -191,7 +170,7 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	}
 	
 	@Override
-	public String readLine(long timeout) throws InterruptedException{
+	public String readLine(long timeout) throws InterruptedException, SerialPortException{
 		
 		remaining++;
 		
@@ -203,6 +182,13 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 		
 		remaining--;
 		
+		if(readException != null){
+			
+			readException = null;
+			throw readException;
+			
+		}
+		
 		if(remaining == 0){
 			
 			String toReturn = lastSent;
@@ -216,69 +202,102 @@ public class PortBridge extends AbstractPortBridge implements SerialPortEventLis
 	}
 	
 	@Override
-	public void send(String request){
+	public void send(String request) throws SerialPortException{
 		
-		out.println(request);
-		out.flush();
+		port.writeString(request);
 		
 	}
 	
 	@Override
 	public void serialEvent(SerialPortEvent arg0) {
 		
-		Thread.currentThread().setName(port.getName() + " request handler");
-		
-		if(arg0.getEventType() == SerialPortEvent.BI){
+		if(arg0.isRXCHAR()){
 			
-			System.out.println("break interrupt on port " + port.getName());
-			Bridge.fireDisconnected(this);
-			
-		}else if(arg0.getEventType() == SerialPortEvent.DATA_AVAILABLE){
-
-			lastSent = in.nextLine();
-			System.out.println("data available : " + lastSent + " !\nnotifying...");
-			
-			synchronized(this){
+			synchronized(port){ // if there is a really little time between two calls
 				
-				notify();
+				try{
+					
+					String received = port.readString();
+					
+					if(received.contains("\n")){
+						
+						int i;
+						
+						if((i = received.indexOf("\n")) != 0)
+							lastSent = receiveCache + received.substring(0, i-1);
+						else
+							lastSent = receiveCache;
+						
+						receiveCache = received.substring(received.indexOf("\n"));
+						
+						synchronized(this){
+							
+							notifyAll();
+							
+						}
+						
+					}else{
+						
+						receiveCache += received;
+						
+					}
+					
+				}catch (SerialPortException e){
+					
+					readException = e;
+					
+				}
 				
 			}
 			
-		}else if(arg0.getEventType() == SerialPortEvent.CTS){
+		}else if(arg0.isCTS()){
 			
-			System.out.println("Port " + port.getName() + " is now ready !");
-			
-		}
-		
-	}
-	
-	/**
-	 * This method is used to update the HID.
-	 * @throws TimeoutException If the <code>HIDGetter</code>'s timeout ends.
-	 * @throws InvalidHIDException If the <code>HID</code> is invalid.
-	 * @throws IOException If an IO exception occurates.
-	 */
-	public void updateHID() throws TimeoutException, InvalidHIDException{
-		
-		try{
-			
-			hid = new HIDGetter(this).getHID();
-			
-		}catch(InvalidHIDException e){
-			
-			System.out.println("given HID is invalid.");
-			System.out.println("retrying...");
-			hid = new HIDGetter(this).getHID();
+			if(arg0.getEventValue() == 1){
+				
+				System.out.println("Port " + port.getPortName() + " is now ready !");
+				
+			}else{
+				
+				System.out.println("Port " + port.getPortName() + " is not longer available.");
+				Bridge.fireDisconnected(this);
+				
+			}
 			
 		}
 		
 	}
 	
-	/**
-	 * This method is used to get the port's name 
-	 * (because <code>port.getName()</code> don't work under Windows).
-	 * @return The port's name.
-	 */
+	public void updateHID() throws TimeoutException, InvalidHIDException, SerialPortException, InterruptedException{
+		
+		System.out.println("getting HID...");
+		System.out.println("sending request...");
+		
+		String hid = null;
+		
+		hid = readLine("HID", 5000);
+		
+		if(hid == null)
+			throw new TimeoutException("Timeout ended before hardware's response.");
+		
+		if(hid.indexOf('#') == -1)
+			throw new InvalidHIDException("The HID don't contains a \"#\"");
+		
+		System.out.println("Got a valid answer !");
+		
+		String creator = hid.substring(0, hid.indexOf('#'));
+		String name = hid.substring(hid.indexOf('#') + 1);
+		
+		HID theHID = new HID();
+		theHID.hid = hid;
+		theHID.creator = creator;
+		theHID.name = name;
+		
+		System.out.println("Successful.");
+		
+		this.hid = theHID;
+		
+	}
+	
 	public String getPortName(){
 		
 		return portName;

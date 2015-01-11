@@ -1,15 +1,12 @@
 package com.ArduinoDrivingServer.bridge;
 
-import gnu.io.CommPortIdentifier;
-import gnu.io.PortInUseException;
-import gnu.io.SerialPort;
-
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
-import javax.swing.JOptionPane;
+import jssc.SerialPort;
+import jssc.SerialPortException;
+import jssc.SerialPortList;
 
 import com.ArduinoDrivingServer.bridge.HID.InvalidHIDException;
 
@@ -25,7 +22,7 @@ public class Bridge {
 	 * This <code>HashMap</code> stores all the available <code>PortBridge</code>s.
 	 * @see HashMap
 	 */
-	private static HashMap<String, AbstractPortBridge> bridges = new HashMap<String, AbstractPortBridge>();
+	private static HashMap<String, AbstractBridge> bridges = new HashMap<String, AbstractBridge>();
 	
 	/**
 	 * This field is used by the method <code>isClosed()</code>
@@ -40,6 +37,11 @@ public class Bridge {
 	 */
 	public static void init() {
 		
+		System.out.println("Opening bridge...");
+		
+		if(!closed)
+			System.out.println("Bridge already opened. Reloading...");
+		
 		System.out.println("Setting up the available ports list...");
 		updatePortBridges();
 		System.out.println("Done.");
@@ -49,8 +51,9 @@ public class Bridge {
 	
 	/**
 	 * This method is used to destroy the bridge.
+	 * @throws Exception If an exception occurs when closing a bridge.
 	 */
-	public static void destroy(){
+	public static void destroy() throws Exception{
 		
 		System.out.println("destroying bridge...");
 		
@@ -77,98 +80,92 @@ public class Bridge {
 		
 		System.out.println("updating PortBridges...");
 		
-		Enumeration<?> ids = CommPortIdentifier.getPortIdentifiers();
+		String[] portNames = SerialPortList.getPortNames();
 		
-		mainLoop : while(ids.hasMoreElements()){
+		mainLoop : for(String id : portNames){
 			
-			CommPortIdentifier id = (CommPortIdentifier) ids.nextElement();
+			System.out.println("Checking " + id);
 			
-			System.out.println("Checking " + id.getName());
-			
-			if(id.getPortType() == CommPortIdentifier.PORT_SERIAL){
+			if(Bridge.bridges.containsKey(id)){
 				
-				if(Bridge.bridges.containsKey(id.getName())){
+				System.out.println("A PortBridge is already created for the port " + id);
+				
+				try {
 					
-					System.out.println("A PortBridge is already created for the port " + id.getName());
+					AbstractBridge b = bridges.get(id);
+					b.updateHID();
 					
-					try {
-						
-						AbstractPortBridge b = bridges.get(id.getName());
-						
-						if(b instanceof PortBridge)
-							((PortBridge) b).updateHID();
-						
-					} catch (TimeoutException | InvalidHIDException e) {
-						
-						System.out.println("Error when getting HID :");
-						e.printStackTrace();
-						System.out.println("Removing " + id.getName());
-						bridges.remove(id.getName());
-						continue;
-						
-					}
+				} catch (Exception e) {
 					
-					System.out.println("Keeping it !");
+					System.out.println("Error when getting HID :");
+					e.printStackTrace();
+					System.out.println("Removing " + id);
+					bridges.remove(id);
 					continue;
 					
 				}
 				
-				System.out.println("The port " + id.getName() + " is a serial port !");
-				System.out.println("registering it...");
+				System.out.println("Keeping it !");
+				continue;
 				
-				System.out.println("Creating PortBridge for port " + id.getName() + "...");
+			}
+			
+			System.out.println("registering port " + id + "...");
+			System.out.println("Creating PortBridge...");
+			
+			SerialPort port = null;
+			
+			while(true){
 				
-				SerialPort port = null;
-				
-				while(true){
-					
-					try {
-						
-						port = (SerialPort) id.open(id.getName(), 9600);
-						
-					} catch (PortInUseException e) { // because id.isCurrentlyOwned() don't work on Windows (I don't know for the others systems)
-						
-						System.out.println("The port is currently owned !");
-						
-						int resp = JOptionPane.showConfirmDialog(null, "The port " + id.getName() + " is "
-								+ "currently owned by another program.\n"
-								+ "Please shut it down and press OK,\n"
-								+ "or press cancel.", "alert", JOptionPane.OK_CANCEL_OPTION);
-						
-						if(resp == JOptionPane.OK_OPTION)
-							continue;
-						// else
-						System.out.println("User has choosed to cancel action.");
-						continue mainLoop;
-						
-					}
-					
-					break;
-					
-				}
+				port = new SerialPort(id);
 				
 				try {
 					
-					bridges.put(id.getName(), new PortBridge(port, id.getName()));
-					System.out.println("port " + id.getName() + " is registered");
+					port.openPort();
 					
-				} catch (IOException e){
+				} catch (SerialPortException e) {
 					
-					System.out.println("Error when initializing PortBridge :");
+					System.out.println("Error when openeing port :");
 					e.printStackTrace();
-					System.out.println("port " + id.getName() + " isn't registered.");
-					
-				}catch (TimeoutException e) {
-					
-					System.out.println("Error : timeout ended before getting HID !");
-					System.out.println("port " + id.getName() + " isn't registered.");
-					
-				}catch(InvalidHIDException e){
-					
-					System.out.println("Error : HID is invalid !");
-					System.out.println("port " + id.getName() + " isn't registered.");
+					System.out.println(id + " isn't registered.");
+					continue mainLoop;
 					
 				}
+				
+				break;
+				
+			}
+			
+			try {
+				
+				bridges.put(id, new PortBridge(port, id));
+				System.out.println("port " + id + " is registered");
+				
+			} catch (IOException e){
+				
+				System.out.println("Error when initializing PortBridge :");
+				e.printStackTrace();
+				System.out.println("port " + id + " isn't registered.");
+				
+			}catch (TimeoutException e) {
+				
+				System.out.println("Error : timeout ended before getting HID !");
+				System.out.println("port " + id + " isn't registered.");
+				
+			}catch(InvalidHIDException e){
+				
+				System.out.println("Error : HID is invalid !");
+				System.out.println("port " + id + " isn't registered.");
+				
+			} catch (SerialPortException e) {
+				
+				System.out.println("Error : " + e.getMessage());
+				System.out.println("port " + id + " isn't registered.");
+				
+			} catch (InterruptedException e) {
+				
+				System.out.println("Error : thread interrupted when waiting for HID !");
+				System.out.println("port " + id + " isn't registered.");
 				
 			}
 			
@@ -182,7 +179,7 @@ public class Bridge {
 	 * @return The <code>PortBridge</code>.
 	 * @see bridges
 	 */
-	public static AbstractPortBridge getPortBridge(String port){
+	public static AbstractBridge getPortBridge(String port){
 		
 		return bridges.get(port);
 		
@@ -193,7 +190,7 @@ public class Bridge {
 	 * It is exactly like calling <code>Bridge.getbridges().put(bridge.getName(), bridge);</code>.
 	 * @param bridge The bridge to add.
 	 */
-	public static void addPortBridge(AbstractPortBridge bridge){
+	public static void addPortBridge(AbstractBridge bridge){
 		
 		bridges.put(bridge.getPortName(), bridge);
 		
@@ -203,10 +200,22 @@ public class Bridge {
 	 * This method is called by <code>PortBridge</code> when the hardware is disconnected.
 	 * @param pb The <code>PortBridge</code>.
 	 */
-	public static void fireDisconnected(AbstractPortBridge pb){
+	public static void fireDisconnected(AbstractBridge pb){
 		
-		pb.close();
-		bridges.remove(pb.getPortName());
+		try{
+			
+			pb.close();
+			
+		}catch (Exception e){
+			
+			System.out.println("Can't close port " + pb.getPortName());
+			e.printStackTrace();
+			
+		}finally{
+			
+			bridges.remove(pb.getPortName());
+			
+		}
 		
 	}
 	
@@ -214,7 +223,7 @@ public class Bridge {
 	 * This method is used to get the list of the available bridges.
 	 * @return The list of the available bridges.
 	 */
-	public static HashMap<String, AbstractPortBridge> getbridges(){return bridges;}
+	public static HashMap<String, AbstractBridge> getbridges(){return bridges;}
 	
 	/**
 	 * This Method is used to know if the <code>Bridge</code> is closed.

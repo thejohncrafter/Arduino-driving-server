@@ -19,4 +19,9 @@ public class InvalidHIDException extends Exception {
 	 */
 	public InvalidHIDException(String message){super(message);}
 	
+	/**
+	 * This constructor just creates the exception.
+	 */
+	public InvalidHIDException(){super();};
+	
 }

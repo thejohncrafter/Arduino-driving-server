@@ -1,0 +1,62 @@
+@CHARSET "UTF-8";
+
+@font-face {
+    font-family:'Anonymous_Pro';
+    src:url('fonts/Anonymous_Pro.ttf');
+}
+
+body{
+    background-color:#202020;
+    color:#E6E6E6;
+    margin:0px;
+    font-size:16px;
+    font-family:Anonymous_Pro;
+    min-width:500px;
+}
+
+.topbar{
+	width:100%;
+	height:3px;
+	background-color:#707070;
+}
+
+.left{
+	float:left;
+    border-right:3px solid #707070;
+    background-color:#404040;
+    width:200px;
+    min-height:100vh;
+}
+
+strong{
+    color:#80BD01;
+}
+
+a{
+    color:#1279c4;
+}
+
+a:hover{
+    color:#80BD01;
+}
+
+H1, H2, H3, H4{
+    font-weight:bolder;
+    color:#80BD01;
+}
+
+.left .block{
+	border-bottom:3px solid #707070;
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+.link{
+    text-align:center;
+    display:block;
+    padding:10px;
+}
+
+.error{
+    color:#c60909;
+}
