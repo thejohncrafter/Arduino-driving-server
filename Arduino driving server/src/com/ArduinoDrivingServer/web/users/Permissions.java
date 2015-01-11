@@ -20,7 +20,7 @@ import com.ArduinoDrivingServer.web.servlets.ArduinoDriving;
 /**
  * This class statically contains all the methods related to permissions.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class Permissions {

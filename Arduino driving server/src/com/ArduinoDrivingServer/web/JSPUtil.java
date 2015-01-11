@@ -3,7 +3,7 @@ package com.ArduinoDrivingServer.web;
 /**
  * This class statically contains tools for JSP pages.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  * 
  */
 public class JSPUtil {

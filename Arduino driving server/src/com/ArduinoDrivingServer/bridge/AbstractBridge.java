@@ -1,7 +1,6 @@
 package com.ArduinoDrivingServer.bridge;
 
 import com.ArduinoDrivingServer.bridge.HID.HID;
-import com.ArduinoDrivingServer.bridge.HID.HIDGetter;
 
 /**
  * This class is used to create <code>PortBridge</code>s and <code>VirtualPort</code>s.
@@ -41,7 +40,7 @@ public abstract class AbstractBridge {
 	 * @return The read line.
 	 * @throws Exception If an error occurs.
 	 */
-	public abstract String readLine() throws Exception;
+	public abstract String readLine() throws BridgeException;
 
 	/**
 	 * This method is used to read a line from the input stream until a given timeout.<br>
@@ -50,7 +49,7 @@ public abstract class AbstractBridge {
 	 * @return The read line.
 	 * @throws Exception If an error occurs.
 	 */
-	public abstract String readLine(long timeout) throws Exception;
+	public abstract String readLine(long timeout) throws BridgeException;
 
 	/**
 	 * This method is used to read a line from the input stream.<br>
@@ -60,7 +59,7 @@ public abstract class AbstractBridge {
 	 * @return The read line.
 	 * @throws Exception If an error occurs.
 	 */
-	public abstract String readLine(String line) throws Exception;
+	public abstract String readLine(String line) throws BridgeException;
 	/**
 	 * This method is used to read a line from the input stream until a given timeout.<br>
 	 * It sends the given line, waits for data and returns the read line.
@@ -69,26 +68,26 @@ public abstract class AbstractBridge {
 	 * @return The read line.
 	 * @throws Exception If an error occurs.
 	 */
-	public abstract String readLine(String line, long timeout) throws Exception;
+	public abstract String readLine(String line, long timeout) throws BridgeException;
 	
 	/**
 	 * This method is used to send a request through the port.
 	 * @param request The request to send.
 	 * @throws Exception If an error occurs.
 	 */
-	public abstract void send(String request) throws Exception;
+	public abstract void send(String request) throws BridgeException;
 	
 	/**
 	 * This method is used to close the <code>PortBridge</code>.
 	 * @throws Exception If an error occurs.
 	 */
-	public abstract void close() throws Exception;
+	public abstract void close() throws BridgeException;
 	
 	/**
 	 * This method is used to update the HID.
 	 * @throws Exception if an exception occurs.
 	 */
-	public abstract void updateHID() throws Exception;
+	public abstract void updateHID() throws BridgeException;
 	
 	/**
 	 * This method is used to get the port's name.

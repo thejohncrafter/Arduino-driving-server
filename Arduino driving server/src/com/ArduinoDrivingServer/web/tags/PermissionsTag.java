@@ -10,7 +10,7 @@ import com.ArduinoDrivingServer.web.users.Permissions;
 /**
  * This tag is used for permissions.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class PermissionsTag implements Tag {

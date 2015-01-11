@@ -19,7 +19,7 @@ import com.ArduinoDrivingServer.web.servlets.ArduinoDriving;
 /**
  * This class statically contains methods related to users.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class Users {

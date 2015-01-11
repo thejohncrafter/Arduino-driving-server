@@ -15,7 +15,7 @@ import com.ArduinoDrivingServer.web.users.Users;
 /**
  * This servlet is used for parameter edition.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class EditServlet extends HttpServlet {

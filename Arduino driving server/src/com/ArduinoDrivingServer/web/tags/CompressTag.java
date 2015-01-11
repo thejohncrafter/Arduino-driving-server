@@ -11,7 +11,7 @@ import javax.servlet.jsp.tagext.Tag;
 /**
  * This class is used to "compress" the created HTML file. It deletes unused whitespaces.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class CompressTag implements BodyTag {

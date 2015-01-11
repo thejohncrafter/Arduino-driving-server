@@ -1,14 +1,22 @@
 package com.ArduinoDrivingServer.bridge;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashMap;
-import java.util.concurrent.TimeoutException;
+import java.util.List;
 
-import jssc.SerialPort;
-import jssc.SerialPortException;
-import jssc.SerialPortList;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
-import com.ArduinoDrivingServer.bridge.HID.InvalidHIDException;
+import com.ArduinoDrivingServer.bridge.USB.PortBridge;
+import com.ArduinoDrivingServer.web.servlets.ArduinoDriving;
 
 /**
  * This class is the <code>bridge</code> between the software and the hardware.
@@ -35,15 +43,137 @@ public class Bridge {
 	 * (but should rarely happen).
 	 * @see PortBridge
 	 */
-	public static void init() {
+	public static void init() throws BridgeException {
 		
 		System.out.println("Opening bridge...");
 		
 		if(!closed)
-			System.out.println("Bridge already opened. Reloading...");
+			throw new IllegalStateException("Bridge already opened !");
 		
-		System.out.println("Setting up the available ports list...");
-		updatePortBridges();
+		Element rootNode;
+		
+		try{
+			
+			File bridgesfile = new File(ArduinoDriving.getRealPath("WEB-INF/bridges.xml"));
+			SAXBuilder builder = new SAXBuilder();
+			Document document = (Document) builder.build(bridgesfile);
+			rootNode = document.getRootElement();
+			
+		}catch(IOException | JDOMException e){
+			
+			throw new BridgeException(e);
+			
+		}
+		
+		List<Element> cfgs = rootNode.getChildren();
+		
+		for(int i = 0; i < cfgs.size(); i++){
+			
+			Element cfg = cfgs.get(i);
+			Boolean activated = false;
+			String activated_str = cfg.getAttributeValue("activated");
+			
+			if(activated_str == null)
+				throw new BridgeException("Error in bridges.xml : in bridge " + i + " : missing activated attribute !");
+			
+			switch(activated_str){
+			
+			case "true" :
+				activated = true;
+				// break;
+			case "false" :
+				// activated = false;
+				break;
+			default:
+				throw new BridgeException("Error in bridges.xml : in bridge " + i + " : state isn't valid !");
+			
+			}
+			
+			if(activated){
+				
+				Element classloader = cfg.getChild("classloader");
+				String classname = classloader.getChildText("classname");
+				
+				if(classname == null)
+					throw new BridgeException("Error in bridges.xml : in bridge " + i + " : in classloader : missing classname !");
+				
+				switch(classloader.getAttributeValue("type")){
+				
+				case "JAR" : //TODO : implement JAR load
+					{
+						String file = classloader.getChildText("file");
+						
+						if(file == null)
+							throw new BridgeException("Error in bridges.xml : in bridge " + i + " : in classloader : missing file !");
+						
+						Class<?> c;
+						
+						try{
+							
+							URLClassLoader loader = new URLClassLoader(new URL[]{new File(ArduinoDriving.getRealPath("/WEB-INF/bridges/" + file))
+																.toURI().toURL()}, Bridge.class.getClassLoader());
+							c = Class.forName(classname, true, loader);
+							
+						}catch(ClassNotFoundException | MalformedURLException e){
+							
+							throw new BridgeException("Error in bridges.xml : in bridge " + i + " : in classloader : in classname : Can't load !", e);
+							
+						}
+						
+						try{
+							
+							Method method = c.getDeclaredMethod("setup");
+							Object object = c.newInstance();
+							method.invoke(object);
+							
+						}catch(NoSuchMethodException | InstantiationException | IllegalAccessException
+								| IllegalArgumentException | InvocationTargetException e){
+							
+							throw new BridgeException(e);
+							
+						}
+						
+					}
+					break;
+				case "NATIVE" :
+					{
+						
+						Class<?> c;
+						
+						try{
+							
+							c = Class.forName(classname);
+							
+						}catch(ClassNotFoundException e){
+							
+							throw new BridgeException("Error in bridges.xml : in bridge " + i + " : in classloader : in classname : no such class !", e);
+							
+						}
+						
+						try{
+							
+							Method method = c.getDeclaredMethod("setup");
+							Object object = c.newInstance(); 
+							method.invoke(object);
+							
+						}catch(NoSuchMethodException | InstantiationException | IllegalAccessException
+								| IllegalArgumentException | InvocationTargetException e){
+							
+							throw new BridgeException(e);
+							
+						}
+						
+					}
+					break;
+				default :
+					throw new BridgeException("Error in bridges.xml : in bridge " + i + " : in classloader : type isn't valid !");
+				
+				}
+				
+			}
+			
+		}
+		
 		System.out.println("Done.");
 		closed = false;
 		
@@ -74,102 +204,10 @@ public class Bridge {
 	 * This method is used to get all the available <code>PortBridge</code>s.
 	 * @throws IOException If an error occurates when creating a <code>PortBridge</code> 
 	 * (but should rarely happen).
-	 * @see PortBridge
 	 */
-	public static void updatePortBridges() {
+	public static void updateBridges() {
 		
-		System.out.println("updating PortBridges...");
-		
-		String[] portNames = SerialPortList.getPortNames();
-		
-		mainLoop : for(String id : portNames){
-			
-			System.out.println("Checking " + id);
-			
-			if(Bridge.bridges.containsKey(id)){
-				
-				System.out.println("A PortBridge is already created for the port " + id);
-				
-				try {
-					
-					AbstractBridge b = bridges.get(id);
-					b.updateHID();
-					
-				} catch (Exception e) {
-					
-					System.out.println("Error when getting HID :");
-					e.printStackTrace();
-					System.out.println("Removing " + id);
-					bridges.remove(id);
-					continue;
-					
-				}
-				
-				System.out.println("Keeping it !");
-				continue;
-				
-			}
-			
-			System.out.println("registering port " + id + "...");
-			System.out.println("Creating PortBridge...");
-			
-			SerialPort port = null;
-			
-			while(true){
-				
-				port = new SerialPort(id);
-				
-				try {
-					
-					port.openPort();
-					
-				} catch (SerialPortException e) {
-					
-					System.out.println("Error when openeing port :");
-					e.printStackTrace();
-					System.out.println(id + " isn't registered.");
-					continue mainLoop;
-					
-				}
-				
-				break;
-				
-			}
-			
-			try {
-				
-				bridges.put(id, new PortBridge(port, id));
-				System.out.println("port " + id + " is registered");
-				
-			} catch (IOException e){
-				
-				System.out.println("Error when initializing PortBridge :");
-				e.printStackTrace();
-				System.out.println("port " + id + " isn't registered.");
-				
-			}catch (TimeoutException e) {
-				
-				System.out.println("Error : timeout ended before getting HID !");
-				System.out.println("port " + id + " isn't registered.");
-				
-			}catch(InvalidHIDException e){
-				
-				System.out.println("Error : HID is invalid !");
-				System.out.println("port " + id + " isn't registered.");
-				
-			} catch (SerialPortException e) {
-				
-				System.out.println("Error : " + e.getMessage());
-				System.out.println("port " + id + " isn't registered.");
-				
-			} catch (InterruptedException e) {
-				
-				System.out.println("Error : thread interrupted when waiting for HID !");
-				System.out.println("port " + id + " isn't registered.");
-				
-			}
-			
-		}
+		//TODO : implement this method
 		
 	}
 	

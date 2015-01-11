@@ -15,7 +15,7 @@ import com.ArduinoDrivingServer.web.users.Users;
 /**
  * This servlet is used for session hadling.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class SessionServlet extends HttpServlet {

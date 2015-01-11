@@ -1,10 +1,9 @@
 package com.ArduinoDrivingServer.web.beans;
 
-
 /**
  * This bean represents a user.
  * 
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class User {

@@ -5,8 +5,8 @@ import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.Tag;
 
 /**
- * This tag is a condition : the content is sghown if a user is connected.
- * @author thejohncrafter
+ * This tag is a condition : the content is shown if a user is connected.
+ * @author Julien Marquet
  *
  */
 public class IsConnectedTag implements Tag {

@@ -81,28 +81,28 @@ public class VirtualPort extends AbstractBridge {
 	}
 	
 	@Override
-	public String readLine() throws InterruptedException {
+	public String readLine() {
 		
 		return null;
 		
 	}
 	
 	@Override
-	public String readLine(long timeout) throws InterruptedException {
+	public String readLine(long timeout) {
 		
 		return null;
 		
 	}
 	
 	@Override
-	public String readLine(String line) throws InterruptedException {
+	public String readLine(String line) {
 		
 		return null;
 		
 	}
 	
 	@Override
-	public String readLine(String line, long timeout) throws InterruptedException {
+	public String readLine(String line, long timeout) {
 		
 		return null;
 		
@@ -137,6 +137,6 @@ public class VirtualPort extends AbstractBridge {
 	}
 	
 	@Override
-	public void updateHID() throws Exception {/* Nothing to do... */}
+	public void updateHID() {/* Nothing to do... */}
 	
 }

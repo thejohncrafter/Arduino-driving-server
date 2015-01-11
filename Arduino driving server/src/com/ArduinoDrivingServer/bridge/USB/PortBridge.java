@@ -1,16 +1,14 @@
-package com.ArduinoDrivingServer.bridge;
-
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
+package com.ArduinoDrivingServer.bridge.USB;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
+import com.ArduinoDrivingServer.bridge.AbstractBridge;
+import com.ArduinoDrivingServer.bridge.Bridge;
+import com.ArduinoDrivingServer.bridge.BridgeException;
 import com.ArduinoDrivingServer.bridge.HID.HID;
-import com.ArduinoDrivingServer.bridge.HID.HIDGetter;
-import com.ArduinoDrivingServer.bridge.HID.InvalidHIDException;
 
 /**
  * This class is used to create a <code>bridge</code> for a given port.<br>
@@ -66,49 +64,58 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	/**
 	 * This constructor uses the given port to define the fields <code>in</code> and <code>out</code>.
 	 * @param port The port to handle.
-	 * @param name The port's name 
-	 * (because <code>port.getName()</code> don't work under Windows).
-	 * @throws IOException If an IO exception occurates when getting port's <code>input</code> and <code>output stream</code> 
-	 * (but should rarely happen).
-	 * @throws InvalidHIDException If the <code>HID</code> of the hardware is invalid.
-	 * @throws TimeoutException Id the timeout ends when getting hardware's <code>HID</code>.
-	 * @throws SerialPortException If a <code>SerialPortException</code> happens (should never happen).
-	 * @throws InterruptedException If the thread is interrupted when waiting for HID (should never happen).
+	 * @param name The port's name.
+	 * @throws BridgeException If an exception occurs.
 	 * @see HID
 	 * @see HIDGetter
 	 */
-	public PortBridge(SerialPort port, String portName) throws IOException, TimeoutException, InvalidHIDException, SerialPortException, InterruptedException{
+	public PortBridge(SerialPort port, String portName) throws BridgeException{
 		
 		super(false);
 		
-		remaining = 0;
-		receiveCache = "";
-		this.port = port;
-		
-		port.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-		
-		port.addEventListener(this);
-		
-		this.portName = portName;
-		
-		if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
+		try{
 			
-			// Linux WTF fix
-			//TODO : Better method for this fix...
-			Thread.sleep(3000);
+			remaining = 0;
+			receiveCache = "";
+			this.port = port;
+			
+			port.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+			
+			port.addEventListener(this);
+			
+			this.portName = portName;
+			
+			if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
+				
+				// Linux WTF fix
+				//TODO : Better method for this fix...
+				Thread.sleep(3000);
+				
+			}
+			
+			updateHID();
+			
+			System.out.println("hardware's HID : " + hid.hid);
+			
+		}catch(Exception e){
+			
+			throw new BridgeException(e);
 			
 		}
-		
-		updateHID();
-		
-		System.out.println("hardware's HID : " + hid.hid);
 		
 	}
 	
 	@Override
-	public void close() throws SerialPortException{
-		
-		port.closePort();
+	public void close() throws BridgeException{
+		try{
+			
+			port.closePort();
+			
+		}catch(Exception e){
+			
+			throw new BridgeException(e);
+			
+		}
 		
 	}
 	
@@ -120,30 +127,38 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	}
 	
 	@Override
-	public String readLine() throws InterruptedException, SerialPortException{
+	public String readLine() throws BridgeException{
 		
-		remaining++;
-		
-		synchronized(this){
+		try{
 			
-			wait();
+			remaining++;
 			
-		}
-		
-		remaining--;
-		
-		if(readException != null){
+			synchronized(this){
+				
+				wait();
+				
+			}
 			
-			readException = null;
-			throw readException;
+			remaining--;
 			
-		}
-		
-		if(remaining == 0){
+			if(readException != null){
+				
+				readException = null;
+				throw readException;
+				
+			}
 			
-			String toReturn = lastSent;
-			lastSent = null;
-			return toReturn;
+			if(remaining == 0){
+				
+				String toReturn = lastSent;
+				lastSent = null;
+				return toReturn;
+				
+			}
+			
+		}catch(Exception e){
+			
+			throw new BridgeException(e);
 			
 		}
 		
@@ -152,7 +167,7 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	}
 	
 	@Override
-	public String readLine(String line) throws InterruptedException, SerialPortException{
+	public String readLine(String line) throws BridgeException{
 		
 		send(line);
 		
@@ -161,7 +176,7 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	}
 	
 	@Override
-	public String readLine(String line, long timeout) throws InterruptedException, SerialPortException{
+	public String readLine(String line, long timeout) throws BridgeException{
 		
 		send(line);
 		
@@ -170,30 +185,38 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	}
 	
 	@Override
-	public String readLine(long timeout) throws InterruptedException, SerialPortException{
+	public String readLine(long timeout) throws BridgeException{
 		
-		remaining++;
-		
-		synchronized(this){
+		try{
 			
-			wait(timeout);
+			remaining++;
 			
-		}
-		
-		remaining--;
-		
-		if(readException != null){
+			synchronized(this){
+				
+				wait(timeout);
+				
+			}
 			
-			readException = null;
-			throw readException;
+			remaining--;
 			
-		}
-		
-		if(remaining == 0){
+			if(readException != null){
+				
+				readException = null;
+				throw readException;
+				
+			}
 			
-			String toReturn = lastSent;
-			lastSent = null;
-			return toReturn;
+			if(remaining == 0){
+				
+				String toReturn = lastSent;
+				lastSent = null;
+				return toReturn;
+				
+			}
+			
+		}catch(Exception e){
+			
+			throw new BridgeException(e);
 			
 		}
 		
@@ -202,9 +225,17 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	}
 	
 	@Override
-	public void send(String request) throws SerialPortException{
+	public void send(String request) throws BridgeException{
 		
-		port.writeString(request);
+		try{
+			
+			port.writeString(request);
+			
+		}catch(Exception e){
+			
+			throw new BridgeException(e);
+			
+		}
 		
 	}
 	
@@ -267,7 +298,7 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 		
 	}
 	
-	public void updateHID() throws TimeoutException, InvalidHIDException, SerialPortException, InterruptedException{
+	public void updateHID() throws BridgeException{
 		
 		System.out.println("getting HID...");
 		System.out.println("sending request...");
@@ -277,10 +308,10 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 		hid = readLine("HID", 5000);
 		
 		if(hid == null)
-			throw new TimeoutException("Timeout ended before hardware's response.");
+			throw new BridgeException("Timeout ended before hardware's response.");
 		
 		if(hid.indexOf('#') == -1)
-			throw new InvalidHIDException("The HID don't contains a \"#\"");
+			throw new BridgeException("The HID don't contains a \"#\"");
 		
 		System.out.println("Got a valid answer !");
 		

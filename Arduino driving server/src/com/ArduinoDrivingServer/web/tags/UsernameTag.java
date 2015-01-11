@@ -8,7 +8,7 @@ import com.ArduinoDrivingServer.web.beans.User;
 
 /**
  * This tag is a condition : the content is sghown if a user is connected.
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class UsernameTag implements Tag {

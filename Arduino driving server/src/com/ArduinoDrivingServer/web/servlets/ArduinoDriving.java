@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jdom2.JDOMException;
 
 import com.ArduinoDrivingServer.bridge.Bridge;
+import com.ArduinoDrivingServer.bridge.BridgeException;
 import com.ArduinoDrivingServer.web.users.Permissions;
 import com.ArduinoDrivingServer.web.users.Users;
 
@@ -70,7 +71,17 @@ public class ArduinoDriving extends HttpServlet {
 		System.out.println("Done.");
 		
 		System.out.println("Initializing bridge...");
-		Bridge.init();
+		
+		try {
+			
+			Bridge.init();
+			
+		} catch (BridgeException e) {
+			
+			throw new ServletException(e);
+			
+		}
+		
 		System.out.println("Done.");
 		
 	}

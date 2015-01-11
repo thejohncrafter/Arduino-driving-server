@@ -15,7 +15,7 @@ import javax.servlet.jsp.tagext.Tag;
  * 	Contact your administrator if you think this is an error.<br>
  * 	<a>Back to home</a>
  * </div>
- * @author thejohncrafter
+ * @author Julien Marquet
  *
  */
 public class ForbiddenMsgTag implements Tag {
