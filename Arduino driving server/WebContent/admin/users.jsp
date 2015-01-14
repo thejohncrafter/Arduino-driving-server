@@ -39,7 +39,14 @@
 			
 			if(r == true){
 				
-				post('edit', 'post', {action:'users.remove', user:username});
+				ADS.removeUser(username,function(answ,err){
+					
+					if(err)
+						document.getElementById('errors').innerHTML = err;
+					else
+						submit_edit_userlist();
+					
+				});
 			    
 			}
 			
@@ -56,8 +63,8 @@ if(request.getParameter("edit") == null){
 		</ADS:ifPerm>
 		<ADS:ifPerm permission="userlist" minValue="READ">
 			<H1>USERS LIST<ADS:ifPerm permission="userlist" minValue="ALL"><a
-				href="javascript:submit_edit_userlist()" style="font-size:10px">[edit]</a></ADS:ifPerm></H1>
-			<ul>
+				onclick="submit_edit_userlist()" class="button">[edit]</a></ADS:ifPerm></H1>
+			<div class="block">
 				<%
 				HashMap<String, User> users = Users.getUsers();
 				String[] keys = users.keySet().toArray(new String[users.size()]);
@@ -66,13 +73,11 @@ if(request.getParameter("edit") == null){
 					
 					User user = users.get(key);
 					%>
-					<li>
-						<a href="javascript:submit_view_user('<%= user.getName() %>')"><%= user.getName() %></a>
-					</li>
+					<a onclick="submit_view_user('<%= user.getName() %>')"><%= user.getName() %></a><br>
 					<%
 				}
 				%>
-			</ul>
+			</div>
 		</ADS:ifPerm>
 		<%
 	}else{
@@ -88,11 +93,11 @@ if(request.getParameter("edit") == null){
 		}else{
 			%>
 			<H1><%= user.getName().toUpperCase() %>'S DATAS<ADS:ifPerm permission="userlist"
-							minValue="ALL"><a href="javascript:submit_edit_user('<%= user.getName() %>')"
-											style="font-size:10px">[edit]</a></ADS:ifPerm></H1>
+							minValue="ALL"><a onclick="submit_edit_user('<%= user.getName() %>')"
+											class="button">[edit]</a></ADS:ifPerm></H1>
 			<H2>ACCOUNT :</H2>
-			username : <%= user.getName() %><br>
-			password : <%= Users.getPassword(user.getName()) %>
+			username : <strong><%= user.getName() %></strong><br>
+			password : <strong><%= Users.getPassword(user.getName()) %></strong>
 			<%
 		}
 		
@@ -104,6 +109,70 @@ if(request.getParameter("edit") == null){
 		<ADS:forbiddenMsg message="You are not allowed to edit users !"/>
 	</ADS:ifPerm>
 	<ADS:ifPerm permission="userlist" minValue="ALL">
+		<script>
+			function submit_json_user(type){
+				
+				var submit = document.getElementById('submit');
+				var errors = document.getElementById('errors');
+				var name = document.getElementById('username').value;
+				var password = document.getElementById('password').value;
+				
+				submit.disabled = true;
+				
+				function callback(answ, err){
+					
+					submit.disabled = false;
+					
+					if(answ){
+						
+						switch(type){
+						
+						case 'edit' :
+						case 'new' :
+							submit_edit_user(name);
+							break;
+						
+						}
+						
+					}else
+						errors.innerHTML = err;
+					
+				};
+				
+				switch(type){
+				
+				case 'new' :
+					ADS.newUser({name:name,password:password}, callback);
+					break;
+				case 'edit' :
+					var oldUser = document.getElementById('oldUser').value;
+					ADS.editUser({name:name,password:password}, oldUser, callback);
+					break;
+				
+				}
+				
+			}
+			
+			function trigger_show_password(){
+				
+				var password = document.getElementById('password');
+				var show_trigger = document.getElementById('trigger_password');
+				
+				switch(password.type){
+				
+				case 'password' :
+					password.type = 'text';
+					show_trigger.innerHTML = 'hide';
+					break;
+				case 'text' :
+					password.type = 'password';
+					show_trigger.innerHTML = 'show';
+					break;
+				
+				}
+				
+			}
+		</script>
 		<%
 		User user = Users.getUser((String) request.getParameter("user"));
 		
@@ -115,8 +184,8 @@ if(request.getParameter("edit") == null){
 		if(action.equals("users.list.edit")){
 			%>
 			<H1>EDIT USERS LIST</H1>
-			<a href="javascript:submit_new_user()">New user</a>
-			<ul>
+			<a onclick="submit_new_user()">New user</a>
+			<div class="block">
 				<%
 				HashMap<String, User> users = Users.getUsers();
 				String[] keys = users.keySet().toArray(new String[users.size()]);
@@ -125,23 +194,18 @@ if(request.getParameter("edit") == null){
 					
 					User usr = users.get(key);
 					%>
-					<li>
-						<a href="javascript:submit_view_user('<%= usr.getName() %>')"><%= usr.getName() %></a><span 
-																								style="font-size:10px">
-								<a href="javascript:submit_edit_user('<%= usr.getName() %>')">[edit]</a>
-								<%
-								if(!usr.getName().equals("sudo")){
-									
-									%><a href="javascript:submit_remove_user('<%= usr.getName() %>')">[remove]</a><%
-									
-								}
-								%>
-							</span>
-					</li>
-					<%
+					<a onclick="submit_view_user('<%= usr.getName() %>')"><%= usr.getName() %></a><a
+						class="button" onclick="submit_edit_user('<%= usr.getName() %>')">[edit]</a><%
+							
+							if(!usr.getName().equals("sudo")){
+								
+								%><a class="button" onclick="submit_remove_user('<%= usr.getName() %>')">[remove]</a><br><%
+								
+							}
 				}
 				%>
-			</ul>
+			</div>
+			<div style="color:red" id="errors"></div>
 			<%
 		}else if(action.equals("users.edit")){
 			
@@ -154,23 +218,14 @@ if(request.getParameter("edit") == null){
 			}else{
 				%>
 				<H1>EDIT <%= user.getName().toUpperCase() %> </H1>
-				<form method="post" action="edit">
-					<fieldset style="border:none;margin:0;padding:0;">
-						<label for="new_username"><strong>Username</strong></label><br>
-						<input <% if(user.getName().equals("sudo")){out.print("readonly");} %>
-							type="text" id="new_username" name="new_username" value="<%= user.getName() %>"/>
-						<br>
-						<label for="new_password"><strong>Password</strong></label><br>
-						<input type="text" id="new_password" name="new_password" value="<%= Users.getPassword(user.getName()) %>"/>
-						<br>
-						<div style="display:none;">
-							<input readonly type="text" id="action" name="action" value="<%= action %>"/>
-							<input readonly type="text" id="arg:user" name="arg:user" value="<%= request.getParameter("user") %>"/>
-						</div>
-						<br>
-						<input type="submit" value="OK" style="float:center;"/>
-					</fieldset>
-				</form>
+				<strong>Name</strong><br>
+				<input type="text" id="username" value="<%= user.getName() %>"/><br>
+				<strong>Password</strong><br>
+				<input type="password" id="password" value="<%= Users.getPassword(user.getName()) %>"/>
+				<button id="trigger_password" onclick="trigger_show_password()">show</button><br>
+				<button id="submit" onclick="submit_json_user('edit')">OK</button>
+				<input type="hidden" id="oldUser" value="<%= request.getParameter("user") %>"/>
+				<div style="color:red" id="errors"></div>
 				<%
 				if(request.getParameter("error") != null)
 					out.print("<span class=\"error\">" + request.getParameter("error") + "</span>");
@@ -178,24 +233,15 @@ if(request.getParameter("edit") == null){
 			}
 			
 		}else if(action.equals("users.new")){
-			
-			out.print("<H1>NEW USER</H1>");
 			%>
-			<form method="post" action="edit">
-				<fieldset style="border:none;margin:0;padding:0;">
-					<label for="new_username"><strong>Username</strong></label><br>
-					<input type="text" id="new_username" name="new_username"/>
-					<br>
-					<label for="new_password"><strong>Password</strong></label><br>
-					<input type="text" id="new_password" name="new_password"/>
-					<br>
-					<div style="display:none;">
-						<input readonly type="text" id="action" name="action" value="<%= action %>"/>
-					</div>
-					<br>
-					<input type="submit" value="OK" style="float:center;"/>
-				</fieldset>
-			</form>
+			<H1>NEW USER</H1>
+			<strong>Name</strong><br>
+			<input type="text" id="username"/><br>
+			<strong>Password</strong><br>
+			<input type="password" id="password"/>
+			<button id="trigger_password" onclick="trigger_show_password()">show</button><br>
+			<button id="submit" onclick="submit_json_user('new')">OK</button>
+			<div style="color:red" id="errors"></div>
 			<%
 			if(request.getParameter("error") != null)
 				out.print("<span class=\"error\">" + request.getParameter("error") + "</span>");

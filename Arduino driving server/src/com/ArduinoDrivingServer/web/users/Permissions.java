@@ -56,7 +56,7 @@ public class Permissions {
 	 * @throws JDOMException Should never happen.
 	 */
 	public static void loadPermissions() throws JDOMException, IOException{
-		
+		//TODO : user groups for permissions
 		System.out.println("Loading all permission names form /WEB-INF/permissions.xml...");
 		
 		File permFile = new File(ArduinoDriving.getRealPath("WEB-INF/permissions.xml"));

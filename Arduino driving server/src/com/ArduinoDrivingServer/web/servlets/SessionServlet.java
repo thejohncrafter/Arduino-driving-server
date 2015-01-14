@@ -38,13 +38,6 @@ public class SessionServlet extends HttpServlet {
 	
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		
-		if(request.getParameter("act") != null && request.getParameter("act").equals("disconnect") && request.getSession().getAttribute("user") != null){
-			
-			System.out.println(((User) request.getSession().getAttribute("user")).getName() + " is disconnected !");
-			request.getSession().invalidate();
-			
-		}
-		
 		response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
 				+ "<body><script>post('ADS', 'get', {});</script></body></html>");
 		
@@ -53,35 +46,66 @@ public class SessionServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		HttpSession session = request.getSession();
-		User user;
-		String name = request.getParameter("username");
-		String password = request.getParameter("password");
 		
-		if(!(name == null || name.trim().length() == 0) && !(password == null || password.trim().length() == 0)){
+		String act = request.getParameter("act");
+		
+		if(act == null){
 			
-			System.out.println("Someone attemps to connect with username \"" + name + "\" and password \"" + password + "\".");
+			response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
+					+ "<body>"
+					+ "Missing act parameter."
+					+ "<a href=\"javascript:post('ADS', 'get', {});\">Go to main page</a>"
+					+ "</body></html>");
 			
-			user = Users.getUser(name);
+		}else if(act.equals("connect")){
 			
-			if(user != null){
+			User user;
+			String name = request.getParameter("username");
+			String password = request.getParameter("password");
+			
+			if(!(name == null || name.trim().length() == 0) && !(password == null || password.trim().length() == 0)){
 				
-				if(password.equals(Users.getPassword(name))){
+				System.out.println("Someone attemps to connect with username \"" + name + "\" and password \"" + password + "\".");
+				
+				user = Users.getUser(name);
+				
+				if(user != null){
 					
-					System.out.println("Someone is connected as " + name + " !");
-					
-					user = new User();
-					user.setName(name);
-					
-					session.setAttribute("user", user);
+					if(password.equals(Users.getPassword(name))){
+						
+						System.out.println("Someone is connected as " + name + " !");
+						
+						user = new User();
+						user.setName(name);
+						
+						session.setAttribute("user", user);
+						
+					}
 					
 				}
 				
 			}
 			
+			response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
+					+ "<body><script>post('ADS', 'get', {});</script></body></html>");
+			
+		}else if(act.equals("disconnect")){
+			
+			System.out.println(((User) session.getAttribute("user")).getName() + " is disconnected !");
+			session.invalidate();
+			
+			response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
+					+ "<body><script>post('ADS', 'get', {});</script></body></html>");
+			
+		}else{
+			
+			response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
+					+ "<body>"
+					+ "Bad value of parameter act."
+					+ "<a href=\"javascript:post('ADS', 'get', {});\">Go to main page</a>"
+					+ "</body></html>");
+			
 		}
-		
-		response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
-				+ "<body><script>post('ADS', 'get', {});</script></body></html>");
 		
 	}
 	

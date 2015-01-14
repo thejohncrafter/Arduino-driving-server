@@ -14,7 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
-import com.ArduinoDrivingServer.bridge.AbstractBridge;
+import com.ArduinoDrivingServer.bridge.AbstractBridgeInterface;
 import com.ArduinoDrivingServer.bridge.Bridge;
 
 
@@ -44,92 +44,100 @@ public class RemoteServlet extends HttpServlet {
 	
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		BufferedReader reader = request.getReader();
-		PrintWriter out = response.getWriter();
-		
-		response.setContentType("text/html");
-	    response.setCharacterEncoding("UTF-8");
-		
-		String params = "";
-		String line;
-		
-		while((line = reader.readLine()) != null)
-			params += line;
-		
-		try{
-
-			JSONStringer stringer = new JSONStringer();
-			JSONObject object = new JSONObject(params); // will go outside try if this isn't readable JSON data
+		if(request.getSession().getAttribute("user") != null){
 			
-			String reqType = object.getString("request");
+			BufferedReader reader = request.getReader();
+			PrintWriter out = response.getWriter();
 			
-			if(reqType != null){
+			response.setContentType("application/json");
+		    response.setCharacterEncoding("UTF-8");
+			
+			String params = "";
+			String line;
+			
+			while((line = reader.readLine()) != null)
+				params += line;
+			
+			try{
 				
-				switch(reqType){
+				JSONStringer stringer = new JSONStringer();
+				JSONObject object = new JSONObject(params); // will go outside try if this isn't readable JSON data
 				
-				case "SEND" :
-					{
-						
-						String port = object.getString("port");
-						String data = object.getString("data");
-						
-						// optional datas
-						boolean wait = false;
-						long timeout = -1;
-						
-						try{
+				String reqType = object.getString("action");
+				
+				if(reqType != null){
+					
+					switch(reqType){
+					
+					case "SEND" :
+						{
 							
-							wait = object.getBoolean("wait");
-							timeout = object.getLong("timeout");
+							String port = object.getString("port");
+							String data = object.getString("data");
 							
-						}catch(JSONException e){ /* don't care */}
-						
-						AbstractBridge bridge = Bridge.getPortBridge(port);
-						
-						if(bridge == null){
+							// optional datas
+							boolean wait = false;
+							long timeout = -1;
 							
-							out.print("{\"error\":\"There is any bridge matching to the given port name.\"}");
-							break;
-							
-						}
-						
-						try{
-							
-							if(wait){
+							try{
 								
-								if(timeout == -1)
-									out.print(stringer.object().key("answer").value(bridge.readLine(data)).endObject().toString());
-								else
-									out.print(stringer.object().key("answer").value(bridge.readLine(data, timeout)).endObject().toString());
+								wait = object.getBoolean("wait");
+								timeout = object.getLong("timeout");
 								
-							}else{
+							}catch(JSONException e){ /* don't care */}
+							
+							AbstractBridgeInterface bridge = Bridge.getPortBridge(port);
+							
+							if(bridge == null){
 								
-								bridge.send(data);
-								out.print("{\"answer\":\"Sent.\"}");
+								out.print("{\"error\":\"There is any bridge matching to the given port name.\"}");
+								break;
 								
 							}
 							
-						}catch(Exception e){
-							
-							out.print(stringer.object().key("error").value("Error whan sending : " + e.getMessage()).endObject().toString());
-							break;
+							try{
+								
+								if(wait){
+									
+									if(timeout == -1)
+										out.print(stringer.object().key("answer").value(bridge.readLine(data)).endObject().toString());
+									else
+										out.print(stringer.object().key("answer").value(bridge.readLine(data, timeout)).endObject().toString());
+									
+								}else{
+									
+									bridge.send(data);
+									out.print("{\"answer\":\"Sent.\"}");
+									
+								}
+								
+							}catch(Exception e){
+								
+								out.print(stringer.object().key("error").value("Error when sending : " + e.getMessage()).endObject().toString());
+								break;
+								
+							}
 							
 						}
-						
+						break;
+					
 					}
-					break;
-				
+					
+				}else{
+					
+					out.print("{\"error\":\"Missing reqType.\"}");
+					
 				}
 				
-			}else{
+			}catch(JSONException e){
 				
-				out.print("{\"error\":\"Missing reqType.\"}");
+				out.print("{\"error\":\"" + e.getMessage().replace("\"", "\\\"").replace("\n", "\\n") + "\"}"); // replace " by \"
 				
 			}
 			
-		}catch(JSONException e){
+		}else{
 			
-			out.print("{\"error\":\"" + e.getMessage().replace("\"", "\\\"").replace("\n", "\\n") + "\"}"); // replace " by \"
+			response.getWriter().print("{\"error\":\"Not connected.\"}");
 			
 		}
 		

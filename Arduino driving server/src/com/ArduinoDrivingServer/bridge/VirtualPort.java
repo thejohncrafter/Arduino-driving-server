@@ -10,7 +10,7 @@ import com.ArduinoDrivingServer.bridge.HID.HID;
  * @author Julien Marquet
  * 
  */
-public class VirtualPort extends AbstractBridge {
+public class VirtualPort extends AbstractBridgeInterface {
 	
 	//TODO : fully implement this class
 	/**
@@ -38,7 +38,7 @@ public class VirtualPort extends AbstractBridge {
 	 */
 	public VirtualPort(String portName, HID hid) {
 		
-		super(true);
+		super("virtual port");
 		
 		this.portName = portName;
 		this.hid = hid;
@@ -56,7 +56,7 @@ public class VirtualPort extends AbstractBridge {
 	 */
 	public VirtualPort(String portName, HID hid, File logFile) {
 		
-		super(true);
+		super("virtual port");
 		
 		this.portName = portName;
 		this.hid = hid;
@@ -119,9 +119,9 @@ public class VirtualPort extends AbstractBridge {
 	 * Closes the assigned <code>VirtualPortView</code>.
 	 */
 	@Override
-	public void close(){
+	public boolean close(){
 		
-		
+		return true;
 		
 	}
 	

@@ -2,12 +2,4 @@
 <!DOCTYPE xml>
 <users>
 	<user name="sudo" password="SUDO"/>
-	<user name="test" password="TEST">
-		<permission name="administration" permission="ALL"/>
-		<permission name="userlist" permission="ALL"/>
-	</user>
-	<user name="test2" password="TEST">
-		<permission name="administration" permission="NONE"/>
-		<permission name="userlist" permission="NONE"/>
-	</user>
 </users>

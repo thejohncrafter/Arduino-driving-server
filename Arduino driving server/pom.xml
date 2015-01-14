@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.thejohncrafter</groupId>
   <artifactId>Ardino-driving-server</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>war</packaging>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -42,6 +42,12 @@
   		<groupId>org.json</groupId>
   		<artifactId>json</artifactId>
   		<version>20090211</version>
+  		<scope>runtime</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-lang</groupId>
+  		<artifactId>commons-lang</artifactId>
+  		<version>2.6</version>
   		<scope>runtime</scope>
   	</dependency>
   </dependencies>

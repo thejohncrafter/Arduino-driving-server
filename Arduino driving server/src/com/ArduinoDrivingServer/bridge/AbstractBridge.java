@@ -1,108 +1,94 @@
 package com.ArduinoDrivingServer.bridge;
 
-import com.ArduinoDrivingServer.bridge.HID.HID;
+import java.util.HashMap;
 
 /**
- * This class is used to create <code>PortBridge</code>s and <code>VirtualPort</code>s.
+ * This interface is used to create custom Bridges.
+ * 
  * @author Julien Marquet
  *
  */
 public abstract class AbstractBridge {
 	
 	/**
-	 * This boolean is used to know if the created <code>PortBridge</code> is virtual or not.
+	 * This boolean is used to know if the bridge is activated.
+	 * @see isActivated
+	 * @see setActivated
 	 */
-	private boolean virtual;
+	private boolean activated;
 	
 	/**
-	 * This constructor just defines the <code>virtual</code> boolean.
-	 * @param vrtual This boolean is used to know if the created <code>PortBridge</code> is virtual or not.
-	 * @see virtual
+	 * This field stores the bridge's name.
+	 * @see getName
+	 * @see setName
 	 */
-	public AbstractBridge(boolean virtual){
-		
-		this.virtual = virtual;
-		
-	}
+	private String name;
 	
 	/**
-	 * This method is used to get the HID (HardwareIDentifier) of the port.
-	 * @return The HID of the port.
-	 * @see HIDGetter
-	 * @see HIDGetter#getHID()
-	 * @see HID 
+	 * This field stores the bridge's description.
+	 * @see getDesc
+	 * @see setDesc
 	 */
-	public abstract HID getHID();
+	private String desc;
 	
 	/**
-	 * This method is used to read a line from the input stream.<br>
-	 * It waits for data and returns the read line.
-	 * @return The read line.
-	 * @throws Exception If an error occurs.
+	 * This method is used to setup the bridge.
+	 * @return The created <code>AbstractBridgeInterface</code>s.
 	 */
-	public abstract String readLine() throws BridgeException;
-
-	/**
-	 * This method is used to read a line from the input stream until a given timeout.<br>
-	 * It waits for data and returns the read line.
-	 * @param timeout The maximum time to wait in milliseconds.
-	 * @return The read line.
-	 * @throws Exception If an error occurs.
-	 */
-	public abstract String readLine(long timeout) throws BridgeException;
-
-	/**
-	 * This method is used to read a line from the input stream.<br>
-	 * It sends the given line, waits for data and returns the read line.<br>
-	 * Calling this method is the same as calling <code>send(line); realLine();</code>.
-	 * @param lin The line to send.
-	 * @return The read line.
-	 * @throws Exception If an error occurs.
-	 */
-	public abstract String readLine(String line) throws BridgeException;
-	/**
-	 * This method is used to read a line from the input stream until a given timeout.<br>
-	 * It sends the given line, waits for data and returns the read line.
-	 * @param lin The line to send.
-	 * @param timeout The maximum time to wait in milliseconds.
-	 * @return The read line.
-	 * @throws Exception If an error occurs.
-	 */
-	public abstract String readLine(String line, long timeout) throws BridgeException;
+	public abstract HashMap<String, AbstractBridgeInterface> init();
 	
 	/**
-	 * This method is used to send a request through the port.
-	 * @param request The request to send.
-	 * @throws Exception If an error occurs.
+	 * This method is used to update the bridge. It creates new 
+	 * <code>AbstractBridgeInterface</code>s for each new connected hardware.
+	 * @return The new <code>AbstractBridgeInterface</code>s.
 	 */
-	public abstract void send(String request) throws BridgeException;
+	public abstract HashMap<String, AbstractBridgeInterface> update();
 	
 	/**
-	 * This method is used to close the <code>PortBridge</code>.
-	 * @throws Exception If an error occurs.
+	 * This method is called by Bridge when closing. All the <code>AbstractBridgeInterface</code> are 
+	 * closed before closing the bridge.
+	 * @see AbstractBridgeInterface#close()
 	 */
-	public abstract void close() throws BridgeException;
+	public abstract void destroy();
 	
 	/**
-	 * This method is used to update the HID.
-	 * @throws Exception if an exception occurs.
+	 * This method is used to get the Bridge's name.
+	 * @return The Bridge's name.
 	 */
-	public abstract void updateHID() throws BridgeException;
+	public final String getName(){return name;}
 	
 	/**
-	 * This method is used to get the port's name.
-	 * @return The port's name.
+	 * This method is used to set the Bridge's name.
+	 * @param name The Bridge's name.
 	 */
-	public abstract String getPortName();
+	public final void setName(String name){this.name = name;}
 	
 	/**
-	 * This boolean is used to know if the created <code>PortBridge</code> is virtual or not.
-	 * @return <code>true</code> if the <code>PortBridge</code>, otherwise <code>false</code>.
+	 * This method is used to get the Bridge's description.
+	 * @return The Bridge's description.
 	 */
-	public boolean isVirtual(){
-		
-		return virtual;
-		
-	}
+	public final String getDesc() {return desc;}
+	
+	/**
+	 * This method is used to get the Bridge's description.
+	 * @return The Bridge's description.
+	 */
+	public final void setDesc(String desc) {this.desc = desc;}
+	
+	/**
+	 * This method id used to know is the bridge is activated.
+	 * @return True if the bridge is activated, otherwise false.
+	 */
+	public final boolean isActivated() {return activated;}
+	
+	/**
+	 * This method id used to set the "activated" property of the bridge.
+	 * <div style="color:red;">But it does not change bridge's state 
+	 * (use <code>init()</code> and <code>destroy</code> for this) !</div>
+	 * @param activated The new value of the "activated" property.
+	 * @see init
+	 * @see destroy
+	 */
+	public final void setActivated(boolean activated) {this.activated = activated;}
 	
 }

@@ -3,4 +3,5 @@
 <permissions>
 	<permission name="administration"/>
 	<permission name="userlist"/>
+	<permission name="bridge"/>
 </permissions>

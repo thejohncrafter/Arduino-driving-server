@@ -5,7 +5,7 @@ import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
-import com.ArduinoDrivingServer.bridge.AbstractBridge;
+import com.ArduinoDrivingServer.bridge.AbstractBridgeInterface;
 import com.ArduinoDrivingServer.bridge.Bridge;
 import com.ArduinoDrivingServer.bridge.BridgeException;
 import com.ArduinoDrivingServer.bridge.HID.HID;
@@ -21,7 +21,7 @@ import com.ArduinoDrivingServer.bridge.HID.HID;
  * @author Julien Marquet
  *
  */
-public class PortBridge extends AbstractBridge implements SerialPortEventListener {
+public class USBBridgeInterface extends AbstractBridgeInterface implements SerialPortEventListener {
 	
 	/**
 	 * This field stores the exception that happened in <code>readLine()</code> 
@@ -69,47 +69,69 @@ public class PortBridge extends AbstractBridge implements SerialPortEventListene
 	 * @see HID
 	 * @see HIDGetter
 	 */
-	public PortBridge(SerialPort port, String portName) throws BridgeException{
+	public USBBridgeInterface(SerialPort port, String portName) throws BridgeException{
 		
-		super(false);
+		super("USB");
+		
+		remaining = 0;
+		receiveCache = "";
+		this.port = port;
 		
 		try{
 			
-			remaining = 0;
-			receiveCache = "";
-			this.port = port;
-			
 			port.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-			
 			port.addEventListener(this);
 			
-			this.portName = portName;
-			
-			if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
-				
-				// Linux WTF fix
-				//TODO : Better method for this fix...
-				Thread.sleep(3000);
-				
-			}
-			
-			updateHID();
-			
-			System.out.println("hardware's HID : " + hid.hid);
-			
-		}catch(Exception e){
+		}catch(SerialPortException e){
 			
 			throw new BridgeException(e);
 			
 		}
 		
+		this.portName = portName;
+		
+		if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
+			
+			// Linux WTF fix
+			//TODO : Better method for this fix...
+			try{
+				
+				Thread.sleep(3000);
+				
+			}catch(InterruptedException e){
+				
+				throw new BridgeException(e);
+				
+			}
+			
+		}
+		
+		try{
+			
+			updateHID();
+			
+		}catch(BridgeException e){
+			
+			System.out.println("Error when updating HID. Closing port...");
+			
+			if(!close())
+				throw new BridgeException("Can't close PortBridge (thrown after catching a BridgeException)", e);
+			
+			throw e;
+			
+		}
+		
+		System.out.println("hardware's HID : " + hid.hid);
+		
+		
 	}
 	
 	@Override
-	public void close() throws BridgeException{
+	public boolean close() throws BridgeException{
+		
 		try{
 			
-			port.closePort();
+			return port.closePort();
 			
 		}catch(Exception e){
 			

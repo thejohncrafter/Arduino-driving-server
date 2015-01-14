@@ -36,6 +36,10 @@ a{
     color:#1279c4;
 }
 
+a.button{
+	font-size:10px;
+}
+
 a:hover{
     color:#80BD01;
 }
@@ -49,6 +53,12 @@ H1, H2, H3, H4{
 	border-bottom:3px solid #707070;
 	margin-top:5px;
 	margin-bottom:5px;
+}
+
+.right .block{
+	margin:10px;
+	padding-left:10px;
+	border-left:3px solid #707070;
 }
 
 .link{
