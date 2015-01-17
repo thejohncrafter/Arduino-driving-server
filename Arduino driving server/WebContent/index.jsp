@@ -167,7 +167,7 @@
 	    	<div class="right">
 	    		<div class="topbar"><!-- This div is a bugfix. PLEASE DO NOT REMOVE IT ! --></div>
 	    		<%
-	    		String file = request.getParameter("file");
+	    		String file = request.getParameter("file").replace("%23", "#");
 	    		
 	    		if(session.getAttribute("user") != null && file != null && new File(ArduinoDriving.getRealPath(file)).exists()){
 	    			%>

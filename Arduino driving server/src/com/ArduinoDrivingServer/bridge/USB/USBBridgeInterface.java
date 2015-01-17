@@ -90,19 +90,15 @@ public class USBBridgeInterface extends AbstractBridgeInterface implements Seria
 		
 		this.portName = portName;
 		
-		if(System.getProperty("os.name").toUpperCase().contains("LINUX")){
+		// WTF fix
+		//TODO : Better method for this fix...
+		try{
 			
-			// Linux WTF fix
-			//TODO : Better method for this fix...
-			try{
-				
-				Thread.sleep(3000);
-				
-			}catch(InterruptedException e){
-				
-				throw new BridgeException(e);
-				
-			}
+			Thread.sleep(3000);
+			
+		}catch(InterruptedException e){
+			
+			throw new BridgeException(e);
 			
 		}
 		
@@ -272,7 +268,9 @@ public class USBBridgeInterface extends AbstractBridgeInterface implements Seria
 					
 					String received = port.readString();
 					
-					if(received.contains("\n")){
+					if(received == null){
+						
+					}else if(received.contains("\n")){
 						
 						int i;
 						
