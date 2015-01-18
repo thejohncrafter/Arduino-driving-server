@@ -55,3 +55,9 @@ function showHide(elem,button){
 	}
 	
 }
+
+function remove_left_info_msg(){
+	
+	document.getElementById('overfly_menu_info').style.display = 'none';
+	
+}

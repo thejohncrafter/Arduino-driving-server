@@ -50,7 +50,7 @@
 	    		
 	    	}
 	    </script>
-	    	<div class="left">
+	    	<div class="left" onmousemove="remove_left_info_msg()">
 	    		<div class="block">
 	    			<ADS:isUserCo>
 	    				<script>
@@ -172,13 +172,11 @@
 	    		if(session.getAttribute("user") != null && file != null && new File(ArduinoDriving.getRealPath(file).replace("%23", "#")).exists()){
 	    			file = file.replace("%23", "#");
 	    			%>
-	    			<div style="padding-left:200px;"><!-- padding-left property is a bug-fix. PLEASE DO NOT REMOVE IT -->
-	    				<jsp:include page="<%= file %>" flush="true" />
-	    			</div>
+	    			<jsp:include page="<%= file %>" flush="true" />
 	    			<%
 	    		}else{
 	    			%>
-	    			<H1>Arduino driving server version 1.0.0</H1>
+	    			<H1>Arduino driving server version 1.0.2-DEV</H1>
 	    			Created by <strong>thejohncrafter</strong>.<br>
 	    			<a href="http://thejohncrafter.github.io">website</a><br>
 	    			<a href="https://github.com/thejohncrafter/Arduino-driving-server">Github</a><br>
@@ -186,6 +184,7 @@
 	    		}
 	    		%>
 	    	</div>
+	    	<div id="overfly_menu_info">&nbsp; &larr; Fly over this bar with your mouse to display the menu</div>
 	    </body>
 	</html>
 </ADS:compress>
