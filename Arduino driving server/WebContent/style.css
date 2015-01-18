@@ -27,6 +27,7 @@ body{
     width:200px;
     height:100%;
     margin-left:-200px;
+    word-wrap:break-word;
 }
 
 .right{

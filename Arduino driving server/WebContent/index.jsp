@@ -117,7 +117,7 @@
 				    					out.print("<li><a onclick=\"submit_goto_driver('" + URLEncoder.encode(
 				    														hid.replace(" ", "_"), "UTF-8") + "')\">");
 				    					
-				    					out.print(JSPUtil.maxLineLength(iface.getHID().hid, 20) + "</a></li>");
+				    					out.print(iface.getHID() + "</a></li>");
 				    					
 				    				}
 				 				%>
