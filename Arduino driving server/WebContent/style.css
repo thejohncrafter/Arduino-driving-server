@@ -66,6 +66,13 @@ H1, H2, H3, H4{
 	margin-bottom:5px;
 }
 
+.left .block .block{
+	margin:10px;
+	padding-left:10px;
+	border-left:3px solid #707070;
+	border-bottom:none;
+}
+
 .right .block{
 	margin:10px;
 	padding-left:10px;

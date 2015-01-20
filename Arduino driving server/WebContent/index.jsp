@@ -6,7 +6,6 @@
 	<%@ page import="java.io.File" %>
 	<%@ page import="com.ArduinoDrivingServer.bridge.Bridge" %>
 	<%@ page import="com.ArduinoDrivingServer.bridge.AbstractBridgeInterface" %>
-	<%@ page import="com.ArduinoDrivingServer.web.JSPUtil" %>
 	<%@ page import="com.ArduinoDrivingServer.web.beans.User" %>
 	<%@ page import="com.ArduinoDrivingServer.web.users.Users" %>
 	<%@ page import="com.ArduinoDrivingServer.web.servlets.ArduinoDriving" %>
@@ -106,7 +105,7 @@
 		 				}else{
 		 					%>
 			 				<H4>AVAILABLE DRIVERS&nbsp;:</H4>
-			 				<ul style="margin-left:-20px;">
+			 				<div class="block">
 				 				<%
 				 					AbstractBridgeInterface[] ifaces = Bridge.getIFaces().values().toArray(
 				 									new AbstractBridgeInterface[Bridge.getIFaces().size()]);
@@ -114,10 +113,10 @@
 				    				for(AbstractBridgeInterface iface : ifaces){
 				    					
 				    					String hid = iface.getHID().hid;
-				    					out.print("<li><a onclick=\"submit_goto_driver('" + URLEncoder.encode(
+				    					out.print("<a onclick=\"submit_goto_driver('" + URLEncoder.encode(
 				    														hid.replace(" ", "_"), "UTF-8") + "')\">");
 				    					
-				    					out.print(iface.getHID() + "</a></li>");
+				    					out.print(iface.getHID() + "</a><br>");
 				    					
 				    				}
 				 				%>
@@ -148,7 +147,7 @@
 					    				out.print("};");%>
 			    					}
 			    				</script>
-		    				</ul>
+		    				</div>
 			   				<%
 		    			}
 			    		%>
@@ -157,10 +156,10 @@
 	    		<ADS:ifPerm permission="administration" minValue="READ">
 					<div class="block">
 						<H4>ADMINISTRATION</H4>
-						<ul>
-							<li><a onclick="submit_goto_users()">USERS LIST</a></li>
-							<li><a onclick="submit_goto_bridge()">BRIDGE</a></li>
-						</ul>
+						<div class="block">
+							<a onclick="submit_goto_users()">USERS LIST</a><br>
+							<a onclick="submit_goto_bridge()">BRIDGE</a>
+						</div>
 					</div>
 				</ADS:ifPerm>
 	    	</div>

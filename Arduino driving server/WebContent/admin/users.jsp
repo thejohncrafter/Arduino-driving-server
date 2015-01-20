@@ -66,10 +66,10 @@ if(request.getParameter("edit") == null){
 				onclick="submit_edit_userlist()" class="button">[edit]</a></ADS:ifPerm></H1>
 			<div class="block">
 				<%
-				HashMap<String, User> users = Users.getUsers();
-				String[] keys = users.keySet().toArray(new String[users.size()]);
+				HashMap<Integer, User> users = Users.getUsers();
+				Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
 				
-				for(String key : keys){
+				for(int key : keys){
 					
 					User user = users.get(key);
 					%>
@@ -187,10 +187,10 @@ if(request.getParameter("edit") == null){
 			<a onclick="submit_new_user()">New user</a>
 			<div class="block">
 				<%
-				HashMap<String, User> users = Users.getUsers();
-				String[] keys = users.keySet().toArray(new String[users.size()]);
+				HashMap<Integer, User> users = Users.getUsers();
+				Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
 				
-				for(String key : keys){
+				for(int key : keys){
 					
 					User usr = users.get(key);
 					%>
@@ -199,9 +199,11 @@ if(request.getParameter("edit") == null){
 							
 							if(!usr.getName().equals("sudo")){
 								
-								%><a class="button" onclick="submit_remove_user('<%= usr.getName() %>')">[remove]</a><br><%
+								%><a class="button" onclick="submit_remove_user('<%= usr.getName() %>')">[remove]</a><%
 								
 							}
+						%><br><%
+						
 				}
 				%>
 			</div>

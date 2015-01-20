@@ -43,7 +43,7 @@ public class Permissions {
 	/**
 	 * This <code>HashMap</code> stores all the user's permissions.
 	 */
-	private static HashMap<String, HashMap<String, Integer>> permissions = new HashMap<String, HashMap<String, Integer>>();
+	private static HashMap<Integer, HashMap<String, Integer>> permissions = new HashMap<Integer, HashMap<String, Integer>>();
 	
 	/**
 	 * This array stores all the permission names.
@@ -115,9 +115,9 @@ public class Permissions {
 	 * @throws IOException If a <code>IOException</code> occurs (if it occurs, it is maybe because 
 	 * <code>usrElem</code> isn't contained by a document).
 	 */
-	public static void fillPermissions(String user, Element usrElem) throws FileNotFoundException, IOException{
+	public static void fillPermissions(User user, Element usrElem) throws FileNotFoundException, IOException{
 		
-		System.out.println("Getting " + user + "'s permissions...");
+		System.out.println("Getting " + user.getName() + "'s permissions...");
 		
 		HashMap<String,Integer> permissions = new HashMap<String,Integer>();
 		
@@ -184,9 +184,9 @@ public class Permissions {
 			
 		}
 		
-		Permissions.permissions.put(user, permissions);
+		Permissions.permissions.put(user.getId(), permissions);
 		
-		System.out.println("Done getting permissions for " + user + ".");
+		System.out.println("Done getting permissions for " + user.getName() + ".");
 		
 	}
 	
