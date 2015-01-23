@@ -48,6 +48,12 @@
 	    		post('ADS', 'post', {file:'admin/bridge.jsp'});
 	    		
 	    	}
+	    	
+			function submit_goto_groups(){
+	    		
+	    		post('ADS', 'post', {file:'admin/groups.jsp'});
+	    		
+	    	}
 	    </script>
 	    	<div class="left" onmousemove="remove_left_info_msg()">
 	    		<div class="block">
@@ -158,6 +164,7 @@
 						<H4>ADMINISTRATION</H4>
 						<div class="block">
 							<a onclick="submit_goto_users()">USERS LIST</a><br>
+							<a onclick="submit_goto_groups()">USERS GROUPS</a><br>
 							<a onclick="submit_goto_bridge()">BRIDGE</a>
 						</div>
 					</div>
@@ -176,9 +183,13 @@
 	    		}else{
 	    			%>
 	    			<H1>Arduino driving server version 1.0.2-DEV</H1>
-	    			Created by <strong>thejohncrafter</strong>.<br>
-	    			<a href="http://thejohncrafter.github.io">website</a><br>
-	    			<a href="https://github.com/thejohncrafter/Arduino-driving-server">Github</a><br>
+	    			<ADS:isUserCo>You are connected as <%= ((User) session.getAttribute("user")).getName() %>.</ADS:isUserCo>
+	    			<ADS:isUserCo invert="true">You aren't connected.</ADS:isUserCo>
+		    			<div class="block">
+		    			Created by <strong>thejohncrafter (Julien Marquet)</strong>.<br>
+		    			<a href="http://thejohncrafter.github.io">website</a><br>
+		    			<a href="https://github.com/thejohncrafter/Arduino-driving-server">Github</a><br>
+	    			</div>
 	    			<%
 	    		}
 	    		%>

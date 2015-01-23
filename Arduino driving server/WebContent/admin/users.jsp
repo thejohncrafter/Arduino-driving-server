@@ -1,3 +1,4 @@
+<%@ taglib uri="../WEB-INF/ADS.tld" prefix="ADS"%>
 <%@ page isELIgnored="false" %>
 <%@ page import="com.ArduinoDrivingServer.web.users.Users" %>
 <%@ page import="com.ArduinoDrivingServer.web.users.Permissions" %>
@@ -5,7 +6,6 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Set" %>
-<%@ taglib uri="../WEB-INF/ADS.tld" prefix="ADS"%>
 <ADS:ifPerm permission="userlist" minValue="ALL">
 	<script type="text/javascript">
 		
@@ -18,12 +18,6 @@
 		function submit_new_user(){
 			
 			post('ADS', 'post', {file:'admin/users.jsp', edit:'', action:'users.new'});
-			
-		}
-		
-		function submit_view_user(username){
-			
-			post('ADS', 'post', {file:'admin/users.jsp', user:username});
 			
 		}
 		
@@ -55,58 +49,39 @@
 </ADS:ifPerm>
 <%
 if(request.getParameter("edit") == null){
-	
-	if(request.getParameter("user") == null || Users.getUser((String) request.getParameter("user")) == null){
-		%>
-		<ADS:ifPerm permission="userlist" minValue="READ" invert="true">
-			<ADS:forbiddenMsg message="You are not allowed to consult this page."/>
-		</ADS:ifPerm>
-		<ADS:ifPerm permission="userlist" minValue="READ">
-			<H1>USERS LIST<ADS:ifPerm permission="userlist" minValue="ALL"><a
-				onclick="submit_edit_userlist()" class="button">[edit]</a></ADS:ifPerm></H1>
-			<div class="block">
-				<%
-				HashMap<Integer, User> users = Users.getUsers();
-				Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+	%>
+	<ADS:ifPerm permission="userlist" minValue="READ" invert="true">
+		<ADS:forbiddenMsg message="You are not allowed to consult this page."/>
+	</ADS:ifPerm>
+	<ADS:ifPerm permission="userlist" minValue="READ">
+		<H1>USERS LIST<ADS:ifPerm permission="userlist" minValue="ALL"><a
+			onclick="submit_edit_userlist()" class="button">[edit]</a></ADS:ifPerm></H1>
+		<div class="block">
+			<%
+			HashMap<Integer, User> users = Users.getUsers();
+			Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+			
+			for(int key : keys){
 				
-				for(int key : keys){
-					
-					User user = users.get(key);
-					%>
-					<a onclick="submit_view_user('<%= user.getName() %>')"><%= user.getName() %></a><br>
-					<%
-				}
+				User user = users.get(key);
 				%>
-			</div>
-		</ADS:ifPerm>
-		<%
-	}else{
-		
-		User user = Users.getUser((String) request.getParameter("user"));
-		
-		if(session.getAttribute("user") == null // if the session contains any user
-				|| (Permissions.getPermission((User) session.getAttribute("user"), "userlist") < Permissions.READ // [ OR if the user hasn't access right
-				&& !user.getName().equals(((User) session.getAttribute("user")).getName())) ){ // AND if the "user" param isn't the username ]
+				<H2><%= user.getName() %></H2>
+				<div class="block">
+					<H2>ACCOUNT :</H2>
+					username : <strong><%= user.getName() %></strong><br>
+					password : <strong><%= Users.getPassword(user.getName()) %></strong><br>
+					group : <strong><%= user.getPermissionsGroup() %></strong>
+				</div>
+				<%
+			}
 			%>
-			<ADS:forbiddenMsg message="You are not allowed to consult this page."/>
-			<%
-		}else{
-			%>
-			<H1><%= user.getName().toUpperCase() %>'S DATAS<ADS:ifPerm permission="userlist"
-							minValue="ALL"><a onclick="submit_edit_user('<%= user.getName() %>')"
-											class="button">[edit]</a></ADS:ifPerm></H1>
-			<H2>ACCOUNT :</H2>
-			username : <strong><%= user.getName() %></strong><br>
-			password : <strong><%= Users.getPassword(user.getName()) %></strong>
-			<%
-		}
-		
-	}
-	
+		</div>
+	</ADS:ifPerm>
+	<%
 }else{
 	%>
 	<ADS:ifPerm permission="userlist" minValue="ALL" invert="true">
-		<ADS:forbiddenMsg message="You are not allowed to edit users !"/>
+		<ADS:forbiddenMsg message="You are not allowed to edit users."/>
 	</ADS:ifPerm>
 	<ADS:ifPerm permission="userlist" minValue="ALL">
 		<script>
@@ -116,6 +91,7 @@ if(request.getParameter("edit") == null){
 				var errors = document.getElementById('errors');
 				var name = document.getElementById('username').value;
 				var password = document.getElementById('password').value;
+				var group = document.getElementById('group').value;
 				
 				submit.disabled = true;
 				
@@ -142,11 +118,11 @@ if(request.getParameter("edit") == null){
 				switch(type){
 				
 				case 'new' :
-					ADS.newUser({name:name,password:password}, callback);
+					ADS.newUser({name:name,password:password,group:group}, callback);
 					break;
 				case 'edit' :
 					var oldUser = document.getElementById('oldUser').value;
-					ADS.editUser({name:name,password:password}, oldUser, callback);
+					ADS.editUser({name:name,password:password,group:group}, oldUser, callback);
 					break;
 				
 				}
@@ -194,7 +170,7 @@ if(request.getParameter("edit") == null){
 					
 					User usr = users.get(key);
 					%>
-					<a onclick="submit_view_user('<%= usr.getName() %>')"><%= usr.getName() %></a><a
+					<H2><%= usr.getName() %><a
 						class="button" onclick="submit_edit_user('<%= usr.getName() %>')">[edit]</a><%
 							
 							if(!usr.getName().equals("sudo")){
@@ -202,8 +178,14 @@ if(request.getParameter("edit") == null){
 								%><a class="button" onclick="submit_remove_user('<%= usr.getName() %>')">[remove]</a><%
 								
 							}
-						%><br><%
-						
+						%></H2>
+					<div class="block">
+						<H2>ACCOUNT :</H2>
+						username : <strong><%= usr.getName() %></strong><br>
+						password : <strong><%= Users.getPassword(usr.getName()) %></strong><br>
+						group : <strong><%= usr.getPermissionsGroup() %></strong>
+					</div>
+					<%
 				}
 				%>
 			</div>
@@ -219,19 +201,18 @@ if(request.getParameter("edit") == null){
 				<%
 			}else{
 				%>
-				<H1>EDIT <%= user.getName().toUpperCase() %> </H1>
+				<H1>EDIT USER <%= user.getName().toUpperCase() %> </H1>
 				<strong>Name</strong><br>
 				<input type="text" id="username" value="<%= user.getName() %>"/><br>
 				<strong>Password</strong><br>
 				<input type="password" id="password" value="<%= Users.getPassword(user.getName()) %>"/>
 				<button id="trigger_password" onclick="trigger_show_password()">show</button><br>
+				<strong>Group</strong><br>
+				<input type="text" id="group" value="<%= user.getPermissionsGroup() %>"/><br>
 				<button id="submit" onclick="submit_json_user('edit')">OK</button>
 				<input type="hidden" id="oldUser" value="<%= request.getParameter("user") %>"/>
 				<div style="color:red" id="errors"></div>
 				<%
-				if(request.getParameter("error") != null)
-					out.print("<span class=\"error\">" + request.getParameter("error") + "</span>");
-				
 			}
 			
 		}else if(action.equals("users.new")){
@@ -242,12 +223,11 @@ if(request.getParameter("edit") == null){
 			<strong>Password</strong><br>
 			<input type="password" id="password"/>
 			<button id="trigger_password" onclick="trigger_show_password()">show</button><br>
-			<button id="submit" onclick="submit_json_user('new')">OK</button>
+			<strong>Group</strong><br>
+			<input type="text" id="group"/><br>
+			<button id="submit" onclick="submit_json_user('new')">OK</button><br>
 			<div style="color:red" id="errors"></div>
 			<%
-			if(request.getParameter("error") != null)
-				out.print("<span class=\"error\">" + request.getParameter("error") + "</span>");
-			
 		}else{
 			
 			out.print("<div class=\"error\">There is any action named " + action + " !</div>");

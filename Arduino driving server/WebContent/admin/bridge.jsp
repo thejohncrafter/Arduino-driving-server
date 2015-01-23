@@ -89,8 +89,7 @@
 				
 				for(AbstractBridge bridge : bridges){
 					%>
-					<H3><%= bridge.getName() %><ADS:ifPerm permission="bridge" minValue="ALL"><a class="button"
-								onclick="submit_edit_bridge('<%= bridge.getName() %>')">[edit]</a></ADS:ifPerm></H3>
+					<H3><%= bridge.getName() %></H3>
 					<div class="block">
 						activated : <strong><%= bridge.isActivated() %></strong><br>
 						name : <strong><%= bridge.getName() %></strong><br>
@@ -182,7 +181,7 @@
 				
 				AbstractBridge bridge = Bridge.getBridges().get(request.getParameter("bridge"));
 				%>
-				<H1>EDIT <%= bridge.getName() %></H1>
+				<H1>EDIT BRIDGE <%= bridge.getName() %></H1>
 				<input <% if(bridge.isActivated())out.print("checked"); %> type="checkbox" id="bridge_is_activated"/><strong>Activated</strong><br>
 				<strong>Name</strong><br>
 				<input type="text" id="bridge_name" value="<%= bridge.getName() %>"/><br>

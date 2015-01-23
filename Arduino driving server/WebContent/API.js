@@ -16,7 +16,7 @@ function ADS(){
 	
 	/**
 	 * This function is used to create a XMLHttprequest.
-	 * @param callback The callback function called when data is received.
+	 * @param callback {function} The callback function called when data is received.
 	 */
 	function createXHR(callback){
 		
@@ -116,9 +116,9 @@ function ADS(){
 	
 	/**
 	 * This function is used to send data to the remote servlet.
-	 * @param iface The hardware interface to send to
-	 * @param datas the datas to send (like {port:"My port", datas:"My datas"}
-	 * @param callback a function(answer, error) used as callback.
+	 * @param iface {Object} The hardware interface to send to
+	 * @param datas {Object} the datas to send (like {port:"My port", datas:"My datas"}
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.send = function(iface, datas, callback){
 		
@@ -136,8 +136,8 @@ function ADS(){
 	
 	/**
 	 * This function is used to open the Bridge.
-	 * @param state a boolean. If true, the Bridge will be opened, otherwise it will be closed.
-	 * @param callback a function(answer, error) used as callback.
+	 * @param state {boolean} a boolean. If true, the Bridge will be opened, otherwise it will be closed.
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.changeBridgeState = function(state, callback){
 		
@@ -167,9 +167,9 @@ function ADS(){
 	
 	/**
 	 * This function is used to edit a bridge.
-	 * @param bridge an object like this : {activated:true/false,name:'bridge name',desc:'bridge description'}
-	 * @param oldName the old name of the bridge
-	 * @param callback a function(answer, error) used as callback.
+	 * @param bridge {Object} an object like this : {activated:true/false,name:'bridge name',desc:'bridge description'}
+	 * @param oldName {String} the old name of the bridge
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.editBridge = function(bridge, oldName, callback){
 		
@@ -194,8 +194,8 @@ function ADS(){
 	
 	/**
 	 * This function is used to create a new user.
-	 * @param user an object like this : {name:"name",password:"password"}
-	 * @param callback a function(answer, error) used as callback.
+	 * @param user {Object} an object like this : {name:"name",password:"password",group:"group"}
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.newUser = function(user, callback){
 		
@@ -220,9 +220,9 @@ function ADS(){
 	
 	/**
 	 * This function is used to create a new user.
-	 * @param user an object like this : {name:"name",password:"password"}
-	 * @param oldUser the old username
-	 * @param callback a function(answer, error) used as callback.
+	 * @param user {Object} an object like this : {name:"name",password:"password",group:"group"}
+	 * @param oldUser {String} the old username
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.editUser = function(user, oldUser, callback){
 		
@@ -247,8 +247,8 @@ function ADS(){
 	
 	/**
 	 * This function is used to create a new user.
-	 * @param user the name of the user to remove
-	 * @param callback a function(answer, error) used as callback.
+	 * @param user {String} the name of the user to remove
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.removeUser = function(user, callback){
 		
@@ -260,6 +260,77 @@ function ADS(){
 		}
 		
 		var params = JSON.stringify({user:{name:this.user.name,password:this.user.password},toRemove:user,action:"users.remove"});
+		var xhr = createXHR(callback);
+		
+		xhr.open("POST", "edit", true);
+		xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
+		xhr.setRequestHeader("Content-length", params.length);
+		xhr.setRequestHeader("Connection", "close");
+		
+		xhr.send(params);
+		
+	}
+	
+	/**
+	 * This method is used to create a new group.
+	 * @param group {Object} an object like this : {name:"name",perms:{perm1:"ALL/READ/NONE",perm2:"ALL/READ/NONE",...}}
+	 */
+	this.newGroup = function(group, callback){
+		
+		if(!this.userCo){
+			
+			callback(null, "No connected user !");
+			return;
+			
+		}
+		
+		var params = JSON.stringify({user:{name:this.user.name,password:this.user.password},group:group,action:"groups.new"});
+		var xhr = createXHR(callback);
+		
+		xhr.open("POST", "edit", true);
+		xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
+		xhr.setRequestHeader("Content-length", params.length);
+		xhr.setRequestHeader("Connection", "close");
+		
+		xhr.send(params);
+		
+	}
+	
+	/**
+	 * This method is used to edit a group.
+	 * @param group {Object} an object like this : {name:"name",perms:{perm1:"ALL/READ/NONE",perm2:"ALL/READ/NONE",...}}
+	 */
+	this.editGroup = function(group, callback){
+		
+		if(!this.userCo){
+			
+			callback(null, "No connected user !");
+			return;
+			
+		}
+		
+		var params = JSON.stringify({user:{name:this.user.name,password:this.user.password},group:group,action:"groups.edit"});
+		var xhr = createXHR(callback);
+		
+		xhr.open("POST", "edit", true);
+		xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
+		xhr.setRequestHeader("Content-length", params.length);
+		xhr.setRequestHeader("Connection", "close");
+		
+		xhr.send(params);
+		
+	}
+	
+	this.removeGroup = function(name, callback){
+		
+		if(!this.userCo){
+			
+			callback(null, "No connected user !");
+			return;
+			
+		}
+		
+		var params = JSON.stringify({user:{name:this.user.name,password:this.user.password},name:name,action:"groups.remove"});
 		var xhr = createXHR(callback);
 		
 		xhr.open("POST", "edit", true);

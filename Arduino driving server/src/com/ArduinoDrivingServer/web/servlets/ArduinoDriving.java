@@ -56,8 +56,8 @@ public class ArduinoDriving extends HttpServlet {
 		
 		try {
 			
-			Permissions.loadPermissions();
-			Users.loadUsers();
+			Permissions.load();
+			Users.load();
 			
 		} catch (JDOMException | IOException e) {
 			

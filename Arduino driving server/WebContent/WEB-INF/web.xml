@@ -10,17 +10,14 @@
 	<servlet>
 		<servlet-name>Arduino driving server - sessions</servlet-name>
 		<servlet-class>com.ArduinoDrivingServer.web.servlets.SessionServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet>
 		<servlet-name>Arduino driving server - edit</servlet-name>
 		<servlet-class>com.ArduinoDrivingServer.web.servlets.EditServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet>
 		<servlet-name>Arduino driving server - remote</servlet-name>
 		<servlet-class>com.ArduinoDrivingServer.web.servlets.RemoteServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 	    <servlet-name>Arduino driving server</servlet-name>

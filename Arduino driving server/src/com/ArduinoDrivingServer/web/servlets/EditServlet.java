@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.ServletConfig;
@@ -28,6 +29,7 @@ import com.ArduinoDrivingServer.bridge.AbstractBridge;
 import com.ArduinoDrivingServer.bridge.Bridge;
 import com.ArduinoDrivingServer.bridge.BridgeException;
 import com.ArduinoDrivingServer.web.beans.User;
+import com.ArduinoDrivingServer.web.users.Permissions;
 import com.ArduinoDrivingServer.web.users.Users;
 
 /**
@@ -70,7 +72,7 @@ public class EditServlet extends HttpServlet {
 		
 	    String params = "";
 		String line;
-		
+		//TODO : check permissions
 		while((line = reader.readLine()) != null)
 			params += line;
 	    
@@ -99,27 +101,34 @@ public class EditServlet extends HttpServlet {
 			
 			String action = object.getString("action");
 			
-			switch(action){
+			main : switch(action){
 			
 			case "users.new" :
 				{
 					
 					String name = StringEscapeUtils.escapeHtml(object.getJSONObject("newUser").getString("name"));
 					String password = StringEscapeUtils.escapeHtml(object.getJSONObject("newUser").getString("password"));
+					String group = StringEscapeUtils.escapeHtml(object.getJSONObject("newUser").getString("group"));
 					
 					System.out.println("New user :");
-					System.out.println("\t username : " + name);
-					System.out.println("\t password : " + password);
+					System.out.println("\tusername : " + name);
+					System.out.println("\tpassword : " + password);
+					System.out.println("\tgroup : " + group);
 					
 					if(Users.getUser(name) != null){
 						
 						System.out.println("Error : a user is already named " + name);
 						out.print("{\"error\":\"The given username already exists !\"}");
 						
-					}if(name.length() == 0 || name.trim().length() == 0){
+					}else if(name.length() == 0 || name.trim().length() == 0){
 						
 						System.out.println("Error : the new username is blank !");
 						out.print("{\"error\":\"The new username is blank !\"}");
+						
+					}else if(!group.equals("sudo") && Permissions.getGroup(group) == null){
+						
+						System.out.println("Error : no such group !");
+						out.print("{\"error\":\"No such group !\"}");
 						
 					}else if(password.length() == 0){
 						
@@ -130,7 +139,7 @@ public class EditServlet extends HttpServlet {
 						
 						try {
 							
-							Users.newUser(name, password);
+							Users.newUser(name, password, group);
 							
 						} catch (JDOMException e) {
 							
@@ -154,13 +163,21 @@ public class EditServlet extends HttpServlet {
 					String name = StringEscapeUtils.escapeHtml(object.getString("oldUser"));
 					String newName = StringEscapeUtils.escapeHtml(object.getJSONObject("newUser").getString("name"));
 					String newPassword = StringEscapeUtils.escapeHtml(object.getJSONObject("newUser").getString("password"));
+					String newGroup = StringEscapeUtils.escapeHtml(object.getJSONObject("newUser").getString("group"));
 					
 					System.out.println("Edition : user");
 					System.out.println("\told username : " + name);
 					System.out.println("\tnew username : " + newName);
 					System.out.println("\tnew password : " + newPassword);
+					System.out.println("\tnew group : " + newGroup);
 					
-					if(name.equals("sudo") && !newName.equals("sudo")){
+					if(Users.getUser(name) == null){
+						
+						System.out.println("Error : no such user !");
+						out.print("{\"error\":\"No such user !\"}");
+						break;
+						
+					}else if(name.equals("sudo") && !newName.equals("sudo")){
 						
 						System.out.println("Error : attemt to rename sudo !");
 						out.print("{\"error\":\"Atempt to rename sudo !\"}");
@@ -175,6 +192,11 @@ public class EditServlet extends HttpServlet {
 						System.out.println("Error : the new username is blank !");
 						out.print("{\"error\":\"The new username is blank !\"}");
 						
+					}else if(!newGroup.equals("sudo") && Permissions.getGroup(newGroup) == null){
+						
+						System.out.println("Error : no such group !");
+						out.print("{\"error\":\"No such group !\"}");
+						
 					}else if(newPassword.length() == 0){
 						
 						System.out.println("Error : the new password is blank !");
@@ -182,12 +204,13 @@ public class EditServlet extends HttpServlet {
 						
 					}else{
 						
-						try {
+						try{
 							
 							Users.changeUsername(name, newName);
 							Users.setPassword(newName, newPassword);
+							Users.changeGroup(newName, newGroup);
 							
-						} catch (JDOMException e) {
+						}catch (JDOMException e){
 							
 							System.out.println("Exception :");
 							e.printStackTrace();
@@ -358,7 +381,13 @@ public class EditServlet extends HttpServlet {
 					System.out.println("\tName : " + name);
 					System.out.println("\tDescription : " + desc);
 					
-					if(!oldName.equals(name) && Bridge.getBridges().get(name) != null){
+					if(Bridge.getBridges().get(oldName) == null){
+						
+						System.out.println("Error : no such bridge !");
+						out.print("{\"error\":\"No such bridge !\"}");
+						break;
+						
+					}else if(!oldName.equals(name) && Bridge.getBridges().get(name) != null){
 						
 						System.out.println("Error : the given name already exists !");
 						out.print("{\"error\":\"The given name already exists !\"}");
@@ -451,6 +480,191 @@ public class EditServlet extends HttpServlet {
 					
 				}
 				break;
+			case "groups.new" :
+				{
+					
+					String name = StringEscapeUtils.escapeHtml(object.getJSONObject("group").getString("name"));
+					JSONObject perms = object.getJSONObject("group").getJSONObject("perms");
+					
+					String[] keys = JSONObject.getNames(perms);
+					HashMap<String, Integer> permsMap = new HashMap<String, Integer>();
+					
+					System.out.println("New group :");
+					System.out.println("\tname : " + name);
+					System.out.println("\tpermissions : " + perms);
+					
+					if(Permissions.getGroup(name) != null){
+						
+						System.out.println("Error : the given name already exists !");
+						out.print("{\"error\":\"The given name already exists !\"}");
+						break;
+						
+					}else if(name.length() == 0 || name.trim().length() == 0){
+						
+						System.out.println("Error : the given name is blank !");
+						out.print("{\"error\":\"The given name is blank !\"}");
+						break;
+						
+					}else{
+						
+						for(String key : keys){
+							
+							int val = Permissions.NONE;
+							
+							switch(perms.getString(key)){
+							
+							case "ALL" :
+								val = Permissions.ALL;
+								break;
+							case "READ" :
+								val = Permissions.READ;
+								//break;
+							case "NONE":
+								break;
+							default :
+								out.print("{\"error\":\"Bad value for permission " + StringEscapeUtils.escapeJavaScript(key) + " !\"}");
+								break main;
+							}
+							
+							permsMap.put(key, val);
+							
+						}
+						
+						try{
+							
+							Permissions.createGroup(name, permsMap);
+							
+						}catch (JDOMException e) {
+							
+							System.out.println("Error :");
+							e.printStackTrace();
+							out.print(new JSONStringer().object().key("error").value("Internal error : " + e.getMessage()).endObject().toString());
+							break;
+							
+						}
+						
+						out.print("{\"answer\":\"Done.\"}");
+						System.out.println("Done.");
+						
+					}
+					
+				}
+				break;
+			case "groups.edit" :
+				{
+					
+					String oldName = object.getJSONObject("group").getString("oldName");
+					String name = StringEscapeUtils.escapeHtml(object.getJSONObject("group").getString("name"));
+					JSONObject perms = object.getJSONObject("group").getJSONObject("perms");
+					
+					String[] keys = JSONObject.getNames(perms);
+					HashMap<String, Integer> permsMap = new HashMap<String, Integer>();
+					
+					if(Permissions.getGroup(oldName) == null){
+						
+						System.out.println("Error : no such group !");
+						out.print("{\"error\":\"No such group !\"}");
+						break;
+						
+					}if(!oldName.equals(name) && Permissions.getGroup(name) != null){
+						
+						System.out.println("Error : the given name already exists !");
+						out.print("{\"error\":\"The given name already exists !\"}");
+						break;
+						
+					}if(name.length() == 0 || name.trim().length() == 0){
+						
+						System.out.println("Error : the given name is blank !");
+						out.print("{\"error\":\"The given name is blank !\"}");
+						break;
+						
+					}else{
+						
+						for(String key : keys){
+							
+							int val = Permissions.NONE;
+							
+							switch(perms.getString(key)){
+							
+							case "ALL" :
+								val = Permissions.ALL;
+								break;
+							case "READ" :
+								val = Permissions.READ;
+								//break;
+							case "NONE":
+								break;
+							default :
+								out.print("{\"error\":\"Bad value for permission " + StringEscapeUtils.escapeJavaScript(key) + " !\"}");
+								break main;
+							}
+							
+							permsMap.put(key, val);
+							
+						}
+						
+						System.out.println("Edit group :");
+						System.out.println("\tname : " + name);
+						System.out.println("\tpermissions : " + permsMap);
+						
+						try{
+							
+							Permissions.editGroup(oldName, name, permsMap);
+							
+						}catch (JDOMException e) {
+							
+							System.out.println("Error :");
+							e.printStackTrace();
+							out.print(new JSONStringer().object().key("error").value("Internal error : " + e.getMessage()).endObject().toString());
+							break;
+							
+						}
+						
+						out.print("{\"answer\":\"Done.\"}");
+						System.out.println("Done.");
+						
+					}
+					
+				}
+				break;
+			case "groups.remove" :
+				String name = StringEscapeUtils.escapeHtml(object.getString("name"));
+				
+				System.out.println("Removing group " + name + "...");
+				
+				if(Permissions.getGroup(name) == null){
+					
+					System.out.println("Error : no such group !");
+					out.print("{\"error\":\"No such group !\"}");
+					break;
+					
+				}else if(Users.getUsersByGroup(name).length != 0){
+					
+					System.out.println("Error : users in this group !");
+					out.print("{\"error\":\"Users in this group !\"}");
+					break;
+					
+				}else{
+					
+					try{
+						
+						Permissions.removeGroup(name);
+						
+					}catch (JDOMException e) {
+						
+						System.out.println("Error :");
+						e.printStackTrace();
+						out.print(new JSONStringer().object().key("error").value("Internal error : " + e.getMessage()).endObject().toString());
+						break;
+						
+					}
+					
+					out.print("{\"answer\":\"Done.\"}");
+					System.out.println("Done.");
+					
+				}
+				
+				break;
 			default:
 				out.print("{\"error\":\"No such action.\"}");
 				break;
@@ -459,7 +673,15 @@ public class EditServlet extends HttpServlet {
 			
 		} catch (JSONException e) {
 			
-			out.print("{\"error\":\"" + e.getMessage().replace("\"", "\\\"").replace("\n", "\\n") + "\"}"); // replace " by \"
+			try {
+				
+				out.print(new JSONStringer().object().key("error").value("Internal error : " + e.getMessage()).endObject().toString());
+				
+			} catch (JSONException e1) {
+				
+				out.print("{\"error\":\"Internal error\"}");
+				
+			}
 			
 		}
 		

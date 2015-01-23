@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <permissions>
-	<permission name="administration"/>
-	<permission name="userlist"/>
-	<permission name="bridge"/>
+	<names>
+		<permission name="administration"/>
+		<permission name="userlist"/>
+		<permission name="bridge"/>
+		<permission name="groups"/>
+	</names>
+	<groups>
+	</groups>
 </permissions>

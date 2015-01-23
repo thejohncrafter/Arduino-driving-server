@@ -19,6 +19,11 @@ public class User {
 	private int id;
 	
 	/**
+	 * This field stores the user's permissions group name.
+	 */
+	private String permissionsGroup;
+	
+	/**
 	 * This method is used to get user's name.
 	 * @return User's name.
 	 */
@@ -41,5 +46,17 @@ public class User {
 	 * @param name User's id.
 	 */
 	public void setId(int id){this.id = id;}
+	
+	/**
+	 * This method is used to get user's permissions group name.
+	 * @return User's id.
+	 */
+	public String getPermissionsGroup(){return permissionsGroup;}
+	
+	/**
+	 * This method is used to set user's permissions group name.
+	 * @param name User's permissions group name.
+	 */
+	public void setPermissionsGroup(String permissionsGroup){this.permissionsGroup = permissionsGroup;}
 	
 }

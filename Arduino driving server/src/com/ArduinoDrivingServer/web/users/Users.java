@@ -3,6 +3,7 @@ package com.ArduinoDrivingServer.web.users;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class Users {
 	 * @throws JDOMException If a <code>JDOMException</code> occurs.
 	 * @throws IOException If a <code>IOException</code> occurs.
 	 */
-	public static void loadUsers() throws JDOMException, IOException{
+	public static void load() throws JDOMException, IOException{
 		
 		System.out.println("Loading all users form /WEB-INF/users.xml...");
 		
@@ -55,6 +56,7 @@ public class Users {
 			
 			Element userElem = (Element) usersList.get(i);
 			String name = userElem.getAttributeValue("name");
+			String group = userElem.getChild("permissions").getAttributeValue("group");
 			
 			System.out.println("Creating user " + name + "...");
 			
@@ -62,9 +64,7 @@ public class Users {
 			User u = new User();
 			u.setName(name);
 			u.setId(i);
-			
-			if(!name.equals("sudo")) // permissions field not used for sudo
-				Permissions.fillPermissions(u, userElem);
+			u.setPermissionsGroup(group);
 			
 			users.put(i, u);
 			passwords.put(i, userElem.getAttributeValue("password"));
@@ -83,11 +83,12 @@ public class Users {
 	 * @throws IOException Should never happen.
 	 * @throws JDOMException Should never happen.
 	 */
-	public static void newUser(String name, String password) throws JDOMException, IOException{
+	public static void newUser(String name, String password, String group) throws JDOMException, IOException{
 		
 		User u = new User();
 		u.setName(name);
 		u.setId(users.size());
+		u.setPermissionsGroup(group);
 		users.put(u.getId(), u);
 		passwords.put(u.getId(), password);
 		
@@ -100,12 +101,14 @@ public class Users {
 		usrElem.setAttribute("name", name);
 		usrElem.setAttribute("password", password);
 		
+		Element groupElem = new Element("permissions");
+		groupElem.setAttribute("group", group);
+		
+		usrElem.addContent(groupElem);
 		rootNode.addContent(usrElem);
-		Permissions.fillPermissions(u, usrElem);
 		
 		XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
 		output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
-		return;
 		
 	}
 	
@@ -120,7 +123,9 @@ public class Users {
 	 */
 	public static void changeUsername(String oldUsername, String newUsername) throws JDOMException, IOException{
 		
-		for(int index = 0; index < users.size(); index++){
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int index : keys){
 			
 			if(users.get(index).getName().equals(oldUsername)){
 				
@@ -137,10 +142,9 @@ public class Users {
 					
 					Element e = allUsers.get(i);
 					
-					if(e.getAttribute("name").equals(oldUsername)){
+					if(e.getAttributeValue("name").equals(oldUsername)){
 						
 						e.setAttribute("name", newUsername);
-						Permissions.fillPermissions(users.get(index), e);
 						
 					}
 					
@@ -164,7 +168,9 @@ public class Users {
 	 */
 	public static void deleteUser(String user) throws JDOMException, IOException{
 		
-		for(int index = 0; index < users.size(); index++){
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int index : keys){
 			
 			if(users.get(index).getName().equals(user)){
 				
@@ -208,7 +214,9 @@ public class Users {
 	 */
 	public static void setPassword(String user, String password) throws JDOMException, IOException{
 		
-		for(int index = 0; index < users.size(); index++){
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int index : keys){
 			
 			if(users.get(index).getName().equals(user)){
 				
@@ -225,7 +233,7 @@ public class Users {
 					
 					Element e = allUsers.get(i);
 					
-					if(e.getAttribute("name").equals(user)){
+					if(e.getAttributeValue("name").equals(user)){
 						
 						e.setAttribute("password", password);
 						
@@ -243,6 +251,71 @@ public class Users {
 	}
 	
 	/**
+	 * This method is used to change a given user's group.
+	 * @param user The user to edit.
+	 * @param group The new group.
+	 * @throws IOException Should never happen.
+	 * @throws JDOMException Should never happen.
+	 */
+	public static void changeGroup(String user, String group) throws JDOMException, IOException{
+		
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int index : keys){
+			
+			if(users.get(index).getName().equals(user)){
+				
+				users.get(index).setPermissionsGroup(group);
+				File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
+				SAXBuilder builder = new SAXBuilder();
+				Document document = (Document) builder.build(usrFile);
+				Element rootNode = document.getRootElement();
+				
+				List<Element> allUsers = rootNode.getChildren();
+				
+				for(int i = 0; i < allUsers.size(); i++){
+					
+					Element e = allUsers.get(i);
+					
+					if(e.getAttributeValue("name").equals(user)){
+						
+						e.getChild("permissions").setAttribute("group", group);
+						
+					}
+					
+				}
+				
+				XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
+				output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
+				
+			}
+			
+		}
+		
+	}
+	
+	/**
+	 * This method is used to get all the users contained by a given group.
+	 * @param gName The name of the user group to get.
+	 * @return The users contained by the group.
+	 */
+	public static User[] getUsersByGroup(String gName){
+		
+		ArrayList<User> group = new ArrayList<User>();
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int i : keys){
+			
+			if(users.get(i).getPermissionsGroup().equals(gName))
+				group.add(users.get(i));
+			
+		}
+		
+		return group.toArray(new User[group.size()]);
+		
+	}
+	
+	/**
 	 * This method is used to get the user which as the given name.<br>
 	 * It will return null if there is no such user.
 	 * @param username The username.
@@ -250,7 +323,9 @@ public class Users {
 	 */
 	public static User getUser(String username){
 		
-		for(int i = 0; i < users.size(); i++){
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int i : keys){
 			
 			if(users.get(i).getName().equals(username))
 				return users.get(i);
@@ -268,7 +343,9 @@ public class Users {
 	 */
 	public static String getPassword(String username){
 		
-		for(int i = 0; i < users.size(); i++){
+		Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+		
+		for(int i : keys){
 			
 			if(users.get(i).getName().equals(username))
 				return passwords.get(i);

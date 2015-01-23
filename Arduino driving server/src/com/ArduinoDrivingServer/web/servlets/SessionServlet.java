@@ -75,9 +75,6 @@ public class SessionServlet extends HttpServlet {
 						
 						System.out.println("Someone is connected as " + name + " !");
 						
-						user = new User();
-						user.setName(name);
-						
 						session.setAttribute("user", user);
 						
 					}
@@ -89,7 +86,7 @@ public class SessionServlet extends HttpServlet {
 			response.getOutputStream().print("<html><head><script type=\"text/javascript\" src=\"script.js\"></script></head>"
 					+ "<body><script>post('ADS', 'get', {});</script></body></html>");
 			
-		}else if(act.equals("disconnect")){
+		}else if(request.getSession().getAttribute("user") != null && act.equals("disconnect")){
 			
 			System.out.println(((User) session.getAttribute("user")).getName() + " is disconnected !");
 			session.invalidate();
