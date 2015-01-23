@@ -274,6 +274,7 @@ function ADS(){
 	/**
 	 * This method is used to create a new group.
 	 * @param group {Object} an object like this : {name:"name",perms:{perm1:"ALL/READ/NONE",perm2:"ALL/READ/NONE",...}}
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.newGroup = function(group, callback){
 		
@@ -299,6 +300,7 @@ function ADS(){
 	/**
 	 * This method is used to edit a group.
 	 * @param group {Object} an object like this : {name:"name",perms:{perm1:"ALL/READ/NONE",perm2:"ALL/READ/NONE",...}}
+	 * @param callback {function} a function(answer, error) used as callback.
 	 */
 	this.editGroup = function(group, callback){
 		
@@ -321,6 +323,11 @@ function ADS(){
 		
 	}
 	
+	/**
+	 * This method is used to remove a given group.
+	 * @param name {String} The name of the group to delete.
+	 * @param callback {function} a function(answer, error) used as callback.
+	 */
 	this.removeGroup = function(name, callback){
 		
 		if(!this.userCo){
