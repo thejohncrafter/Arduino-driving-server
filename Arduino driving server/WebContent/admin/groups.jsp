@@ -105,7 +105,7 @@ if(request.getParameter("edit") == null){
 					for(String key : keys){
 						
 						String val = "ALL";
-						//FIXME : NPE in this file after user edition...
+						
 						if(perms.get(key).equals(Permissions.NONE))
 							val = "NONE";
 						else if(perms.get(key).equals(Permissions.READ))
