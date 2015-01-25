@@ -48,27 +48,31 @@ function ADS(){
 			
 		}
 		
-		xhr.onreadystatechange = function(evt){
+		if(callback){
 			
-			if(xhr.readyState == 4){
+			xhr.onreadystatechange = function(evt){
 				
-				if(xhr.status == 200 || xhr.status == 0){
+				if(xhr.readyState == 4){
 					
-					var answ = JSON.parse(xhr.responseText);
-					
-					if(answ.error){
+					if(xhr.status == 200 || xhr.status == 0){
 						
-						callback(null, answ.error);
+						var answ = JSON.parse(xhr.responseText);
+						
+						if(answ.error){
+							
+							callback(null, answ.error);
+							
+						}else{
+							
+							callback(answ.answer, null);
+							
+						}
 						
 					}else{
 						
-						callback(answ.answer, null);
+						callback(null, "Page load error bad status");
 						
 					}
-					
-				}else{
-					
-					callback(null, "Page load error bad status");
 					
 				}
 				
