@@ -1,6 +1,6 @@
-<H1>3 COLOR LED DRIVER</H1>
 <script>
 	var iface = ADS.getHardwareDatas('thejohncrafter#3 color led');
+	var firstTime = true;
 	
 	function send(){
 		
@@ -15,6 +15,8 @@
 		}
 		
 		document.getElementById('send_btn').disabled = true;
+		document.getElementById('handling').style.display = 'block';
+		document.getElementById('waiting').style.display = 'none';
 		
 		if(r < 10)
 			r = '00' + r;
@@ -35,6 +37,13 @@
 		
 		ADS.send(iface, {action:'SEND', port:iface.port, data:data, wait:true}, function(answ, err){
 			
+			if(firstTime){
+				
+				firstTime = false;
+				document.getElementById("answerText").innerHTML = '';
+				
+			}
+			
 			if(err){
 				
 				console.log('Error !');
@@ -47,6 +56,8 @@
 			}
 			
 			document.getElementById('send_btn').disabled = false;
+			document.getElementById('handling').style.display = 'none';
+			document.getElementById('waiting').style.display = 'block';
 			
 		});
 		
@@ -59,17 +70,76 @@
 		document.getElementById("blue_input").value = b;
 		
 	}
+	
+	function clearLogs(){
+		
+		firstTime = true;
+		document.getElementById("answerText").innerHTML = 'Logs cleared.';
+		
+	}
 </script>
-<H2>Colors :</H2>
-Red : <input id="red_input" type="number" min="0" max="255" size="3" value="0"/><br>
-Green : <input id="green_input" type="number" min="0" max="255" size="3" value="0"/><br>
-Blue : <input id="blue_input" type="number" min="0" max="255" size="3" value="0"/><br>
-<button id="send_btn" onclick="send()">SET</button><span id="load"></span>
-<H3>Presets :</H3>
-<button onclick="preset(255, 0, 0);">RED</button>
-<button onclick="preset(0, 255, 0);">GREEN</button>
-<button onclick="preset(0, 0, 255);">BLUE</button>
-<button onclick="preset(255, 255, 255);">WHITE</button>
-<button onclick="preset(0, 0, 0);">OFF</button>
-<H2>Logs :</H2>
-<div class="block" id="answerText"></div>
+
+<div class="panel panel-default">
+	<h1 class="panel title">3 color led driver</h1>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-4">
+				<H2>Colors :</H2>
+				<p class="hidden-xs bs-callout bs-callout-info">
+					Select the color you want than press on the "OK" button !
+				</p>
+				<div class="form-group">
+					<label for="bridge_desc">Red</label>
+					<input class="form-control" id="red_input" type="number" min="0" max="255" size="3" value="0"/>
+				</div>
+				<div class="form-group">
+					<label for="bridge_desc">Green</label>
+					<input class="form-control" id="green_input" type="number" min="0" max="255" size="3" value="0"/>
+				</div>
+				<div class="form-group">
+					<label for="bridge_desc">Blue</label>
+					<input class="form-control" id="blue_input" type="number" min="0" max="255" size="3" value="0"/>
+				</div>
+				<button type="button" class="btn btn-lg btn-primary btn-block"
+					id="send_btn" onclick="send()">OK</button><span id="load"></span>
+			</div>
+			<div class="col-md-4">
+				<H2>Presets</H2>
+				<p class="hidden-xs bs-callout bs-callout-info">
+					Here are presets for the color. Choose one of these then press on "OK" !
+				</p>
+				<div class="btn-group" role="group" aria-label="Presets">
+					<button type="button" class="btn btn-default" onclick="preset(255, 0, 0);">RED</button>
+					<button type="button" class="btn btn-default" onclick="preset(0, 255, 0);">GREEN</button>
+					<button type="button" class="btn btn-default" onclick="preset(0, 0, 255);">BLUE</button>
+					<button type="button" class="btn btn-default" onclick="preset(255, 255, 255);">WHITE</button>
+					<button type="button" class="btn btn-default" onclick="preset(0, 0, 0);">OFF</button>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<H2>State</H2>
+				<p class="hidden-xs bs-callout bs-callout-info">
+					Here is the state of the hardware.
+				</p>
+				<div id="handling" style="display:none">
+					<div class="progress">
+						<div class="progress-bar progress-bar-striped active" role="progressbar" style="width:100%">Please wait...</div>
+					</div>
+					Handling request...
+				</div>
+				<div id="waiting">
+					Waiting for request.
+				</div>
+			</div>
+		</div>
+		<div class="bs-callout bs-callout-info hidden-xs">
+			<H4>Logs : <a class="btn btn-default" onclick="clearLogs()" title="Clear logs">
+					<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
+				</a>
+			</H4>
+			<div class="block" id="answerText">
+				Here will be hardware's logs.
+			</div>
+		</div>
+	</div>
+</div>

@@ -9,9 +9,11 @@
 </ADS:ifPerm>
 <ADS:ifPerm permission="groups" minValue="ALL">
 	<script>
-		function submit_edit_groups(){
+		var toDelete;
+		
+		function submit_goto_groups(){
 			
-			post('ADS', 'post', {file:'admin/groups.jsp', edit:'', action:'groups.edit'});
+			post('ADS', 'post', {file:'admin/groups.jsp'});
 			
 		}
 		
@@ -21,9 +23,9 @@
 			
 		}
 		
-		function submit_new_group(group){
+		function submit_new_group(){
 			
-			post('ADS', 'post', {file:'admin/groups.jsp', edit:'', action:'groups.new', group:group});
+			post('ADS', 'post', {file:'admin/groups.jsp', edit:'', action:'groups.new'});
 			
 		}
 		
@@ -33,22 +35,26 @@
 			
 		}
 		
-		function submit_remove_group(name){
+		function setGroupToDelete(name){
 			
-			var r = confirm(('Are you sure you want to remove ' + name + ' ?'));
+			document.getElementById('usersGroup_name').innerHTML = name;
+			toDelete = name;
 			
-			if(r == true){
+		}
+		
+		function submit_remove_group(){
+			
+			ADS.removeGroup(toDelete,function(answ,err){
 				
-				ADS.removeGroup(name,function(answ,err){
+				if(err){
 					
-					if(err)
-						document.getElementById('errors').innerHTML = err;
-					else
-						submit_edit_groups();
+					document.getElementById('errors').innerHTML = err;
+					document.getElementById('errors').style.display = 'block';
 					
-				});
-			    
-			}
+				}else
+					submit_goto_groups();
+				
+			});
 			
 		}
 	</script>
@@ -60,81 +66,133 @@ if(request.getParameter("edit") == null){
 		<ADS:forbiddenMsg message="You are not allowed to consult this page."/>
 	</ADS:ifPerm>
 	<ADS:ifPerm permission="groups" minValue="READ">
-		<H1>USER GROUPS<ADS:ifPerm permission="groups" minValue="ALL"
-			><a class="button" onclick="submit_edit_groups()">[edit]</a></ADS:ifPerm></H1>
-		<H2>SUDO</H2>
-		<div class="block" id="group_elem_sudo">
-			<H3>Permissions</H3>
-			<div class="block">
-				This group has all permissions.
-			</div>
-			<H3>Users in this group</H3>
-				<div class="block">
+		<div class="panel panel-default">
+			<h1 class="panel title">
+				Users groups
+				<ADS:ifPerm permission="groups" minValue="ALL">
+					<button class="btn btn-default" onclick="submit_new_group()" title="Create a new group.">
+						<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+					</button>
+				</ADS:ifPerm>
+			</h1>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="panel panel-default">
+							<div class="panel-heading panel-title">sudo</div>
+							<div class="panel-body">
+								<div class="bs-callout bs-callout-primary">
+									<H4>Permissions</H4>
+									This group has all permissions.
+								</div>
+								<div class="bs-callout bs-callout-primary">
+									<H4>Users in this group</H4>
+									<%
+									{
+										
+										User[] group =  Users.getUsersByGroup("sudo");
+										
+										for(User user : group){
+											%>
+											<ADS:ifPerm permission="groups" minValue="ALL">
+												<a onclick="submit_edit_user('<%= user.getName() %>')"><%= user.getName() %></a><br>
+											</ADS:ifPerm>
+											<ADS:ifPerm permission="groups" minValue="ALL" invert="true">
+												<%= user.getName() %><br>
+											</ADS:ifPerm>
+											<%
+										}
+										
+										if(group.length == 0)
+											out.print("Any user in this group.");
+										
+									}
+									%>
+								</div>
+							</div>
+						</div>
+					</div>
 					<%
-					{
-						
-						User[] group =  Users.getUsersByGroup("sudo");
-						
-						for(User user : group){
-							%>
-							<%= user.getName() %><br>
-							<%
-						}
-						
-						if(group.length == 0)
-							out.print("Any user in this group.");
-						
+					String[] groups = Permissions.getGroupNames().values().toArray(new String[Permissions.getGroupNames().size()]);
+					
+					for(String name : groups){
+						%>
+						<div class="col-md-3">
+							<div class="panel panel-default">
+								<div class="panel-heading panel-title">
+									<ADS:ifPerm permission="bridge" minValue="ALL">
+										<a class="btn btn-default" onclick="submit_edit_group('<%= name %>')"
+											title="Edit this group">
+											<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+										</a>
+										<button onclick="setGroupToDelete('<%= name %>')" type="button"
+											class="btn btn-danger" data-toggle="modal"
+											data-target="#modal_remove_group" title="Remove this users group.">
+											<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
+										</button>
+									</ADS:ifPerm>
+									<%= name %>
+								</div>
+								<div class="panel-body">
+									<div class="bs-callout bs-callout-primary">
+										<H4>Permissions</H4>
+										<%
+										HashMap<String, Integer> perms = Permissions.getGroup(name);
+										String[] keys = perms.keySet().toArray(new String[perms.size()]);
+										
+										for(String key : keys){
+											
+											String val = Permissions.getPermissionAsString(perms.get(key));
+											%>
+											<%= key %> : <strong><%= val %></strong><br>
+											<%
+										}
+										%>
+									</div>
+									<div class="bs-callout bs-callout-primary">
+										<H4>Users in this group</H4>
+										<%
+										User[] group =  Users.getUsersByGroup(name);
+										
+										for(User user : group){
+											%>
+											<%= user.getName() %><br>
+											<%
+										}
+										
+										if(group.length == 0)
+											out.print("Any user in this group.");
+										%>
+									</div>
+								</div>
+							</div>
+						</div>
+						<%
 					}
 					%>
 				</div>
+				<div class="bs-callout bs-callout-danger" id="errors" style="display:none"></div>
+			</div>
 		</div>
-		<%
-		String[] groups = Permissions.getGroupNames().values().toArray(new String[Permissions.getGroupNames().size()]);
-		
-		for(String name : groups){
-			%>
-			<H2><%= name.toUpperCase() %><a class="button" id="showHide_<%= name %>"
-				onclick="showHide('group_elem_<%= name %>','showHide_<%= name %>')">[hide]</a></H2>
-			<div class="block" id="group_elem_<%= name %>">
-				<H3>Permissions</H3>
-				<div class="block">
-					<%
-					HashMap<String, Integer> perms = Permissions.getGroup(name);
-					String[] keys = perms.keySet().toArray(new String[perms.size()]);
-					
-					for(String key : keys){
-						
-						String val = "ALL";
-						
-						if(perms.get(key).equals(Permissions.NONE))
-							val = "NONE";
-						else if(perms.get(key).equals(Permissions.READ))
-							val = "READ";
-						%>
-						<%= key %> : <strong><%= val %></strong><br>
-						<%
-					}
-					%>
-				</div>
-				<H3>Users in this group</H3>
-				<div class="block">
-					<%
-					User[] group =  Users.getUsersByGroup(name);
-					
-					for(User user : group){
-						%>
-						<%= user.getName() %><br>
-						<%
-					}
-					
-					if(group.length == 0)
-						out.print("Any user in this group.");
-					%>
+		<div class="modal fade" id="modal_remove_group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title" id="myModalLabel">Confirm</h4>
+					</div>
+					<div class="modal-body">
+						Are you sure you want to delete users group <strong><span id="usersGroup_name"></span></strong> ?
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_remove_group()">Yes</button>
+					</div>
 				</div>
 			</div>
-			<%
-		}
-		%>
+		</div>
 	</ADS:ifPerm>
 <%
 }else{
@@ -151,98 +209,25 @@ if(request.getParameter("edit") == null){
 			<div class="error">Any action given !</div><br>
 			<a href="ADS">Back to home</a>
 			<%
-		}else if(action.equals("groups.edit")){
-			%>
-			<H1>EDIT USER GROUPS</H1>
-			<a onclick="submit_new_group()">New group</a>
-			<H2>SUDO</H2>
-			<div class="block" id="group_elem_sudo">
-				<H3>Permissions</H3>
-				<div class="block">
-					This group has all permissions.
-				</div>
-				<H3>Users in this group</H3>
-					<div class="block">
-						<%
-						{
-							
-							User[] group =  Users.getUsersByGroup("sudo");
-							
-							for(User user : group){
-								%>
-								<%= user.getName() %><a class="button" onclick="submit_edit_user('<%= user.getName() %>')">[edit]</a><br>
-								<%
-							}
-							
-							if(group.length == 0)
-								out.print("Any user in this group.");
-							
-						}
-						%>
-					</div>
-			</div>
-			<%
-			String[] groups = Permissions.getGroupNames().values().toArray(new String[Permissions.getGroupNames().size()]);
-			
-			for(String name : groups){
-				%>
-				<H2><%= name.toUpperCase() %><a class="button" onclick="submit_edit_group('<%= name %>')">[edit]</a
-					><a class="button" onclick="submit_remove_group('<%= name %>')">[remove]</a
-					><a class="button" id="showHide_<%= name %>"
-					onclick="showHide('group_elem_<%= name %>','showHide_<%= name %>')">[hide]</a></H2>
-				<div class="block" id="group_elem_<%= name %>">
-					<H3>Permissions</H3>
-					<div class="block" id="group_elem_<%= name %>">
-						<%
-						HashMap<String, Integer> perms = Permissions.getGroup(name);
-						String[] keys = perms.keySet().toArray(new String[perms.size()]);
-						
-						for(String key : keys){
-							
-							String val = "ALL";
-							
-							if(perms.get(key).equals(Permissions.NONE))
-								val = "NONE";
-							else if(perms.get(key).equals(Permissions.READ))
-								val = "READ";
-							%>
-							<%= key %> : <strong><%= val %></strong><br>
-							<%
-						}
-						%>
-					</div>
-					<H3>Users in this group</H3>
-					<div class="block">
-						<%
-						User[] group =  Users.getUsersByGroup(name);
-						
-						for(User user : group){
-							%>
-							<%= user.getName() %><a class="button" onclick="submit_edit_user('<%= user.getName() %>')">[edit]</a><br>
-							<%
-						}
-						
-						if(group.length == 0)
-							out.print("Any user in this group.");
-						%>
-					</div>
-				</div>
-				<div class="error" id="errors"></div>
-				<%
-			}
 		}else if(action.equals("group.edit")){
 			
 			String group = request.getParameter("group");
 			
 			if(group == null){
 				%>
-				<div class="error">Any group given !</div><br>
-				<a href="ADS">Back to home</a>
+				<div class="alert alert-danger" role="alert">
+					<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+					<span class="sr-only">Error:</span>
+					Any group given !
+				</div>
 				<%
 			}else if(Permissions.getGroup(group) == null){
 				%>
-				<div class="error">No such group !</div><br>
-				<a href="ADS">Back to home</a>
+				<div class="alert alert-danger" role="alert">
+					<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+					<span class="sr-only">Error:</span>
+					No such group : <%= group %> !
+				</div>
 				<%
 			}else{
 				
@@ -276,38 +261,33 @@ if(request.getParameter("edit") == null){
 						});
 					}
 				</script>
-				<H1>EDIT GROUP <%= group.toUpperCase() %></H1>
-				name : <input type="text" id="name" value="<%= group %>" size="4"/>
-				<H3>Permissions</H3>
-					<div class="block">
-						<%
-						
-						for(String key : keys){
-							
-							String val = Permissions.getPermissionAsString(perms.get(key));
-							%>
-							<strong><%= key %></strong> : <input type="text" id="perm_<%= key %>" value="<%= val %>" size="4"/><br>
+				<div class="panel panel-default">
+					<h1 class="panel title">Edit users group <%= group %></h1>
+					<div class="panel-body">
+						<div class="form-group">
+							<label for="name">Name</label>
+							<input class="form-control" type="text" id="name" placeholder="Group name" value="<%= group %>"/>
+						</div>
+						<label>Permissions</label>
+						<table class="table">
+							<tr><th>Name</th><th>Value</th></tr>
 							<%
-						}
-						%>
-					</div>
-					<H3>Users in this group</H3>
-					<div class="block">
-						<%
-						User[] groupUsrs =  Users.getUsersByGroup(group);
-						
-						for(User user : groupUsrs){
+							for(String key : keys){
+								%>
+								<tr>
+									<td><%= key %></td>
+									<td><input class="form-control" id="perm_<%= key %>" type="text" placeholder="NONE, READ or ALL"
+										value="<%= Permissions.getPermissionAsString(perms.get(key)) %>"/></td>
+								</tr>
+								<%
+							}
 							%>
-							<%= user.getName() %><a class="button" onclick="submit_edit_user('<%= user.getName() %>')">[edit]</a><br>
-							<%
-						}
-						
-						if(groupUsrs.length == 0)
-							out.print("Any user in this group.");
-						%>
+						</table>
+						<button type="button" class="btn btn-lg btn-primary btn-block"
+							id="send_btn" onclick="submit_json_group()">OK</button><span id="load"></span>
+						<div class="bs-callout bs-callout-danger" id="errors" style="display:none"></div>
 					</div>
-					<button onclick="submit_json_group()">OK</button>
-					<div class="error" id="errors"></div>
+				</div>
 				<%
 			}
 			
@@ -332,6 +312,7 @@ if(request.getParameter("edit") == null){
 						if(err){
 							
 							document.getElementById('errors').innerHTML = err;
+							document.getElementById('errors').style.display = 'block';
 							
 						}else{
 							
@@ -342,22 +323,32 @@ if(request.getParameter("edit") == null){
 					});
 				}
 			</script>
-			<H1>EDIT GROUP</H1>
-			name : <input type="text" id="name" size="4"/>
-			<H3>Permissions</H3>
-				<div class="block">
-					<%
-					
-					for(String key : keys){
-						
-						%>
-						<strong><%= key %></strong> : <input type="text" id="perm_<%= key %>" size="4"/><br>
+			<div class="panel panel-default">
+				<h1 class="panel title">New users group</h1>
+				<div class="panel-body">
+					<div class="form-group">
+						<label for="name">Name</label>
+						<input class="form-control" type="text" id="name" placeholder="Group name"/>
+					</div>
+					<label>Permissions</label>
+					<table class="table">
+						<tr><th>Name</th><th>Value</th></tr>
 						<%
-					}
-					%>
+						for(String key : keys){
+							%>
+							<tr>
+								<td><%= key %></td>
+								<td><input class="form-control" id="perm_<%= key %>" type="text" placeholder="NONE, READ or ALL"/></td>
+							</tr>
+							<%
+						}
+						%>
+					</table>
+					<button type="button" class="btn btn-lg btn-primary btn-block"
+						id="send_btn" onclick="submit_json_group()">OK</button><span id="load"></span>
+					<div class="bs-callout bs-callout-danger" id="errors" style="display:none"></div>
 				</div>
-				<button onclick="submit_json_group()">OK</button>
-				<div class="error" id="errors"></div>
+			</div>
 			<%
 		}else{
 			%>

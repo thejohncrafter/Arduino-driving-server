@@ -31,33 +31,3 @@ function post(path, method, params) {
 	document.body.appendChild(form);
 	form.submit();
 }
-
-/**
- * This method is used to show/hide a given block element.
- * @param elem The component to show/hide.
- * @param button The button where clicking for show/hide.
- */
-function showHide(elem,button){
-	
-	elem = document.getElementById(elem);
-	button = document.getElementById(button);
-	
-	if(elem.style.display == 'none'){
-		
-		button.innerHTML = '[hide]';
-		elem.style.display = 'block';
-		
-	}else{
-		
-		button.innerHTML = '[show]';
-		elem.style.display = 'none';
-		
-	}
-	
-}
-
-function remove_left_info_msg(){
-	
-	document.getElementById('overfly_menu_info').style.display = 'none';
-	
-}

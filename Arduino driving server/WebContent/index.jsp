@@ -13,188 +13,219 @@
 	<html>
 	    <head>
 	        <title>Arduino driving server</title>
-	        <link rel="stylesheet" type="text/css" href="style.css">
+	        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	        <meta name="viewport" content="width=device-width, initial-scale=1">
+	        <link rel="stylesheet" href="bootstrap/bootstrap.min.css"/>
+	        <link rel="stylesheet" href="bootstrap/callout.min.css"/>
 	        <script type="text/javascript" src="script.js"></script>
 	        <script type="text/javascript" src="API.js"></script>
 	    </head>
 	    <body>
-	    <script type="text/javascript">
-	    	function submit_goto_driver(hid){
-	    		
-	    		post('ADS', 'post', {file:'drivers/' + hid + '/driver.jsp'});
-	    		
-	    	}
-	    	
-	    	function submit_goto_user(username){
-	    		
-	    		post('ADS', 'post', {file:'admin/users.jsp', user:username});
-	    		
-	    	}
-	    	
-	    	function submit_disconnect(){
-	    		
-	    		post('connect', 'post', {act:'disconnect'});
-	    		
-	    	}
-	    	
-	    	function submit_goto_users(){
-	    		
-	    		post('ADS', 'post', {file:'admin/users.jsp'});
-	    		
-	    	}
-	    	
-	    	function submit_goto_bridge(){
-	    		
-	    		post('ADS', 'post', {file:'admin/bridge.jsp'});
-	    		
-	    	}
-	    	
-			function submit_goto_groups(){
-	    		
-	    		post('ADS', 'post', {file:'admin/groups.jsp'});
-	    		
-	    	}
-	    </script>
-	    	<div class="left" onmousemove="remove_left_info_msg()">
-	    		<div class="block">
-	    			<ADS:isUserCo>
-	    				<script>
-							ADS.userCo = true;
-							ADS.user = {name:"<%= ((User) session.getAttribute("user")).getName()
-								%>", password:"<%= Users.getPassword(((User) session.getAttribute("user")).getName()) %>"};
-						</script>
-						<strong>You are connected as <ADS:username/></strong><br>
-						<a onclick="submit_goto_user('<%=((User)session.getAttribute("user")).getName()%>')">My account</a><br>
-						<a onclick="submit_disconnect()">disconnect</a>
-					</ADS:isUserCo>
-					<ADS:isUserCo invert="true">
-						<form method="post" action="connect">
-							<H4>CONNECTION</H4>
-							<fieldset style="border:none;margin:0;padding:0;">
-								<label for="username"><strong>Username</strong></label><br>
-								<input type="text" id="username" name="username" value="" style="width:190px;"/>
-								<br>
-								<label for="username"><strong>Password</strong></label><br>
-								<input type="password" id="password" name="password" style="width:190px;"/>
-								<br>
-								<input type="hidden" name="act" value="connect"/>
-								<input type="submit" value="connect" style="float:center;"/>
-							</fieldset>
-						</form>
-					</ADS:isUserCo>
-	    		</div>
-	    		<ADS:isUserCo>
-		    		<div class="block">
-			    		<%
-		    			if(!Bridge.isOpened()){
-		    				%>
-		    				<span class="error">Bridge is closed&nbsp;!</span>
-			 				<script type="text/javascript">
-				 				ADS.getHIDs = function(){
-				 					
-				 					return {};
-				 					
-				 				}
-			 				</script>
-		    				<%
-		    			}else if(Bridge.getIFaces().size() == 0){
+		    <script type="text/javascript">
+		    	function submit_goto_home(){
+		    		
+		    		post('ADS', 'post');
+		    		
+		    	}
+		    	
+		    	function submit_connect(){
+		    		
+		    		post('ADS', 'post', {file:'connect.jsp'});
+		    		
+		    	}
+		    	
+		    	function submit_goto_driver(hid){
+		    		
+		    		post('ADS', 'post', {file:'drivers/' + hid + '/driver.jsp'});
+		    		
+		    	}
+		    	
+		    	function submit_goto_user(username){
+		    		
+		    		post('ADS', 'post', {file:'admin/users.jsp', user:username});
+		    		
+		    	}
+		    	
+		    	function submit_disconnect(){
+		    		
+		    		post('connect', 'post', {act:'disconnect'});
+		    		
+		    	}
+		    	
+		    	function submit_goto_users(){
+		    		
+		    		post('ADS', 'post', {file:'admin/users.jsp'});
+		    		
+		    	}
+		    	
+		    	function submit_goto_bridge(){
+		    		
+		    		post('ADS', 'post', {file:'admin/bridge.jsp'});
+		    		
+		    	}
+		    	
+				function submit_goto_groups(){
+		    		
+		    		post('ADS', 'post', {file:'admin/groups.jsp'});
+		    		
+		    	}
+		    </script>
+		    <nav class="navbar navbar-default">
+	            <div class="container-fluid">
+	                <div class="navbar-header">
+	                    <a class="navbar-brand" onclick="submit_goto_home()">Arduino driving server</a>
+	                </div>
+	                <div>
+	                    <ul class="nav navbar-nav">
+							<ADS:isUserCo invert="true">
+								<li>
+									<a onclick="submit_connect()">Connection</a>
+								</li>
+							</ADS:isUserCo>
+                    		<ADS:isUserCo>
+			    				<script>
+									ADS.userCo = true;
+									ADS.user = {name:"<%= ((User) session.getAttribute("user")).getName()
+										%>", password:"<%= Users.getPassword(((User) session.getAttribute("user")).getName()) %>"};
+								</script>
+								<li class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown"
+										role="button" aria-expanded="false"><ADS:username/><span class="caret"></span></a>
+									<ul class="dropdown-menu" role="menu">
+										<li><a onclick="submit_goto_user('<%=((User)session.getAttribute("user")).getName()%>')">My account</a></li>
+										<li><a onclick="submit_disconnect()">disconnect</a></li>
+									</ul>
+								</li>
+								<li class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown"
+										role="button" aria-expanded="false">Bridge<span class="caret"></span></a>
+									<ul class="dropdown-menu" role="menu">
+										<li><a onclick="submit_goto_bridge()">Edit</a></li>
+										<li role="presentation" class="divider"></li>
+										<%
+										if(!Bridge.isOpened()){
+											%>
+											<li>
+												<a onclick="submit_goto_bridge()">Bridge is closed.</a>
+												<script type="text/javascript">
+									 				ADS.getHIDs = function(){
+									 					
+									 					return {};
+									 					
+									 				}
+								 				</script>
+											</li>
+											<%
+										}else if(Bridge.getIFaces().size() == 0){
+											%>
+											<li>
+												<a onclick="submit_goto_bridge()">There is any hardware connected to the server.</a>
+												<script type="text/javascript">
+									 				ADS.getHIDs = function(){
+									 					
+									 					return {};
+									 					
+									 				}
+								 				</script>
+											</li>
+											<%
+										}else{
+											%>
+											<li>
+												<%
+							 					AbstractBridgeInterface[] ifaces = Bridge.getIFaces().values().toArray(
+							 									new AbstractBridgeInterface[Bridge.getIFaces().size()]);
+							 					
+							    				for(AbstractBridgeInterface iface : ifaces){
+							    					
+							    					String hid = iface.getHID().hid;
+							    					out.print("<li><a onclick=\"submit_goto_driver('" + URLEncoder.encode(
+							    														hid.replace(" ", "_"), "UTF-8") + "')\">");
+							    					
+							    					out.print(iface.getHID() + "</a></li>");
+							    					
+							    				}
+								 				%>
+												<script type="text/javascript">
+							    					ADS.getHIDs = function(){
+									    				<%
+									    				out.print("return {");
+									    				boolean first = true;
+									    				
+									    				for(AbstractBridgeInterface iface : ifaces){
+									    					
+									    					if(!first){
+									    						
+									    						out.print(",");
+									    						first = true;
+									    						
+									    					}
+									    					
+									    					out.print("'" + iface.getHID() + "':{");
+									    					out.print("HID:'" + iface.getHID().hid + "'");
+									    					out.print(",name:'" + iface.getHID().name + "'");
+									    					out.print(",creator:'" + iface.getHID().creator + "'");
+									    					out.print(",port:'" + iface.getPortName() + "'");
+									    					out.print(",type:'" + iface.getBridgeName() + "'");
+									    					out.print("}");
+									    					
+									    				}
+									    				
+									    				out.print("};");%>
+							    					}
+								    			</script>
+											</li>
+											<%
+										}
+										%>
+									</ul>
+								</li>
+	    						<ADS:ifPerm permission="administration" minValue="READ">
+									<li class="dropdown">
+										<a href="#" class="dropdown-toggle" data-toggle="dropdown"
+											role="button" aria-expanded="false">Administration<span class="caret"></span></a>
+										<ul class="dropdown-menu" role="menu">
+											<li><a onclick="submit_goto_users()">Users list</a></li>
+											<li><a onclick="submit_goto_groups()">Users groups</a></li>
+											<li><a onclick="submit_goto_bridge()">Bridge</a></li>
+										</ul>
+									</li>
+								</ADS:ifPerm>
+							</ADS:isUserCo>
+	        			</ul>
+	        		</div>
+	        	</div>
+	        </nav>
+	        <div class="container">
+	        	<%
+	        	{
+		    		String file = request.getParameter("file");
+		    		
+		    		if(file != null && new File(ArduinoDriving.getRealPath(file).replace("%23", "#")).exists()){
+		    			file = file.replace("%23", "#");
 		    			%>
-		 				<span class="error">There is any hardware connected to the server&nbsp;!</span>
-		 				<script type="text/javascript">
-			 				ADS.getHIDs = function(){
-			 					
-			 					return {};
-			 					
-			 				}
-		 				</script>
-		 				<%
-		 				}else{
-		 					%>
-			 				<H4>AVAILABLE DRIVERS&nbsp;:</H4>
-			 				<div class="block">
-				 				<%
-				 					AbstractBridgeInterface[] ifaces = Bridge.getIFaces().values().toArray(
-				 									new AbstractBridgeInterface[Bridge.getIFaces().size()]);
-				 					
-				    				for(AbstractBridgeInterface iface : ifaces){
-				    					
-				    					String hid = iface.getHID().hid;
-				    					out.print("<a onclick=\"submit_goto_driver('" + URLEncoder.encode(
-				    														hid.replace(" ", "_"), "UTF-8") + "')\">");
-				    					
-				    					out.print(iface.getHID() + "</a><br>");
-				    					
-				    				}
-				 				%>
-			    				<script type="text/javascript">
-			    					ADS.getHIDs = function(){
-					    				<%out.print("return {");
-					    				boolean first = true;
-					    				
-					    				for(AbstractBridgeInterface iface : ifaces){
-					    					
-					    					if(!first){
-					    						
-					    						out.print(",");
-					    						first = true;
-					    						
-					    					}
-					    					
-					    					out.print("'" + iface.getHID() + "':{");
-					    					out.print("HID:'" + iface.getHID().hid + "'");
-					    					out.print(",name:'" + iface.getHID().name + "'");
-					    					out.print(",creator:'" + iface.getHID().creator + "'");
-					    					out.print(",port:'" + iface.getPortName() + "'");
-					    					out.print(",type:'" + iface.getBridgeName() + "'");
-					    					out.print("}");
-					    					
-					    				}
-					    				
-					    				out.print("};");%>
-			    					}
-			    				</script>
-		    				</div>
-			   				<%
-		    			}
-			    		%>
-		    		</div>
-	    		</ADS:isUserCo>
-	    		<ADS:ifPerm permission="administration" minValue="READ">
-					<div class="block">
-						<H4>ADMINISTRATION</H4>
-						<div class="block">
-							<a onclick="submit_goto_users()">USERS LIST</a><br>
-							<a onclick="submit_goto_groups()">USERS GROUPS</a><br>
-							<a onclick="submit_goto_bridge()">BRIDGE</a>
-						</div>
-					</div>
-				</ADS:ifPerm>
-	    	</div>
-	    	<div class="right">
-	    		<div class="topbar"><!-- This div is a bugfix. PLEASE DO NOT REMOVE IT ! --></div>
-	    		<%
-	    		String file = request.getParameter("file");
-	    		
-	    		if(session.getAttribute("user") != null && file != null && new File(ArduinoDriving.getRealPath(file).replace("%23", "#")).exists()){
-	    			file = file.replace("%23", "#");
-	    			%>
-	    			<jsp:include page="<%= file %>" flush="true" />
-	    			<%
-	    		}else{
-	    			%>
-	    			<H1>Arduino driving server version 1.0.2-DEV</H1>
-	    			<ADS:isUserCo>You are connected as <%= ((User) session.getAttribute("user")).getName() %>.</ADS:isUserCo>
-	    			<ADS:isUserCo invert="true">You aren't connected.</ADS:isUserCo>
-		    			<div class="block">
-		    			Created by <strong>thejohncrafter (Julien Marquet)</strong>.<br>
-		    			<a href="http://thejohncrafter.github.io">website</a><br>
-		    			<a href="https://github.com/thejohncrafter/Arduino-driving-server">Github</a><br>
-	    			</div>
-	    			<%
-	    		}
+		    			<jsp:include page="<%= file %>" flush="true" />
+		    			<%
+		    		}else{
+		    			%>
+		    			<div class="panel panel-default">
+						    <h1 class="panel title">Arduino driving server version 1.0.2</h1>
+						    <div class="panel-body">
+			    				<ADS:isUserCo>You are connected as <%= ((User) session.getAttribute("user")).getName() %>.</ADS:isUserCo>
+			    				<ADS:isUserCo invert="true">You aren't connected.</ADS:isUserCo>
+			    				<br>
+				    			Created by thejohncrafter (Julien Marquet).<br>
+				    			<a href="http://thejohncrafter.github.io">website</a><br>
+				    			<a href="https://github.com/thejohncrafter/Arduino-driving-server">Github</a><br>
+			    			</div>
+		    			</div>
+		    			<%
+		    		}
+	        	}
 	    		%>
-	    	</div>
-	    	<div id="overfly_menu_info">&nbsp; &larr; Fly over this bar with your mouse to display the menu</div>
+	        </div>
+	        <script src="bootstrap/jquery.min.js"></script>
+	        <script src="bootstrap/bootstrap.min.js"></script>
 	    </body>
 	</html>
 </ADS:compress>

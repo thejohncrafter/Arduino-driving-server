@@ -8,6 +8,13 @@
 <%@ page import="java.util.Set" %>
 <ADS:ifPerm permission="userlist" minValue="ALL">
 	<script type="text/javascript">
+		var toDelete;
+		
+		function submit_goto_users(){
+			
+			post('ADS', 'post', {file:'admin/users.jsp'});
+			
+		}
 		
 		function submit_edit_user(username){
 			
@@ -21,28 +28,26 @@
 			
 		}
 		
-		function submit_edit_userlist(){
+		function setUserToDelete(name){
 			
-			post('ADS', 'post', {file:'admin/users.jsp', edit:'', action:'users.list.edit'});
+			toDelete = name;
+			document.getElementById('user_name').innerHTML = name;
 			
 		}
 		
-		function submit_remove_user(username){
+		function submit_remove_user(){
 			
-			var r = confirm(('Are you sure you want to remove ' + username + ' ?'));
-			
-			if(r == true){
+			ADS.removeUser(toDelete,function(answ,err){
 				
-				ADS.removeUser(username,function(answ,err){
+				if(err){
 					
-					if(err)
-						document.getElementById('errors').innerHTML = err;
-					else
-						submit_edit_userlist();
+					document.getElementById('errors').innerHTML = err;
+					document.getElementById('errors').style.display = 'block';
 					
-				});
-			    
-			}
+				}else
+					submit_goto_users();
+				
+			});
 			
 		}
 	</script>
@@ -54,27 +59,79 @@ if(request.getParameter("edit") == null){
 		<ADS:forbiddenMsg message="You are not allowed to consult this page."/>
 	</ADS:ifPerm>
 	<ADS:ifPerm permission="userlist" minValue="READ">
-		<H1>USERS LIST<ADS:ifPerm permission="userlist" minValue="ALL"><a
-			onclick="submit_edit_userlist()" class="button">[edit]</a></ADS:ifPerm></H1>
-		<div class="block">
-			<%
-			HashMap<Integer, User> users = Users.getUsers();
-			Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
-			
-			for(int key : keys){
-				
-				User user = users.get(key);
-				%>
-				<H2><%= user.getName() %></H2>
-				<div class="block">
-					<H2>ACCOUNT :</H2>
-					username : <strong><%= user.getName() %></strong><br>
-					password : <strong><%= Users.getPassword(user.getName()) %></strong><br>
-					group : <strong><%= user.getPermissionsGroup() %></strong>
+		<div class="panel panel-default">
+			<h1 class="panel title">
+				Users
+				<ADS:ifPerm permission="userlist" minValue="READ">
+					<button class="btn btn-default" onclick="submit_new_user()" title="Create a new group.">
+						<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+					</button>
+				</ADS:ifPerm>
+			</h1>
+			<div class="panel-body">
+				<div class="row">
+					<%
+					HashMap<Integer, User> users = Users.getUsers();
+					Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
+					
+					for(int key : keys){
+						
+						User user = users.get(key);
+						%>
+						<div class="col-md-3">
+							<div class="panel panel-default">
+								<div class="panel-heading panel-title">
+									<ADS:ifPerm permission="bridge" minValue="ALL">
+										<a class="btn btn-default" onclick="submit_edit_user('<%= user.getName() %>')"
+											title="Edit this group">
+											<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+										</a>
+										<%
+										if(!user.getName().equals("sudo")){
+											%>
+											<button onclick="setUserToDelete('<%= user.getName() %>')" type="button"
+												class="btn btn-danger" data-toggle="modal"
+												data-target="#modal_remove_user" title="Remove this users group.">
+												<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
+											</button>
+											<%
+										}
+										%>
+									</ADS:ifPerm>
+									<%= user.getName() %>
+								</div>
+								<div class="panel-body">
+									<strong>Name</strong> : <%= user.getName() %><br>
+									<strong>Password</strong> : <%= Users.getPassword(user.getName()) %><br>
+									<strong>Group</strong> : <%= user.getPermissionsGroup() %>
+								</div>
+							</div>
+						</div>
+						<%
+					}
+					%>
 				</div>
-				<%
-			}
-			%>
+				<div class="bs-callout bs-callout-danger" id="errors" style="display:none"></div>
+			</div>
+		</div>
+		<div class="modal fade" id="modal_remove_user" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title" id="myModalLabel">Confirm</h4>
+					</div>
+					<div class="modal-body">
+						Are you sure you want to delete user <strong><span id="user_name"></span></strong> ?
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_remove_user()">Yes</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</ADS:ifPerm>
 	<%
@@ -87,31 +144,23 @@ if(request.getParameter("edit") == null){
 		<script>
 			function submit_json_user(type){
 				
-				var submit = document.getElementById('submit');
 				var errors = document.getElementById('errors');
 				var name = document.getElementById('username').value;
 				var password = document.getElementById('password').value;
 				var group = document.getElementById('group').value;
 				
-				submit.disabled = true;
-				
 				function callback(answ, err){
-					
-					submit.disabled = false;
 					
 					if(answ){
 						
-						switch(type){
+						submit_edit_user(name);
 						
-						case 'edit' :
-						case 'new' :
-							submit_edit_user(name);
-							break;
+					}else{
 						
-						}
-						
-					}else
+						errors.style.display = 'block';
 						errors.innerHTML = err;
+						
+					}
 					
 				};
 				
@@ -128,26 +177,6 @@ if(request.getParameter("edit") == null){
 				}
 				
 			}
-			
-			function trigger_show_password(){
-				
-				var password = document.getElementById('password');
-				var show_trigger = document.getElementById('trigger_password');
-				
-				switch(password.type){
-				
-				case 'password' :
-					password.type = 'text';
-					show_trigger.innerHTML = 'hide';
-					break;
-				case 'text' :
-					password.type = 'password';
-					show_trigger.innerHTML = 'show';
-					break;
-				
-				}
-				
-			}
 		</script>
 		<%
 		User user = Users.getUser((String) request.getParameter("user"));
@@ -157,41 +186,7 @@ if(request.getParameter("edit") == null){
 		if(request.getParameter("action") != null)
 			action = request.getParameter("action");
 		
-		if(action.equals("users.list.edit")){
-			%>
-			<H1>EDIT USERS LIST</H1>
-			<a onclick="submit_new_user()">New user</a>
-			<div class="block">
-				<%
-				HashMap<Integer, User> users = Users.getUsers();
-				Integer[] keys = users.keySet().toArray(new Integer[users.size()]);
-				
-				for(int key : keys){
-					
-					User usr = users.get(key);
-					%>
-					<H2><%= usr.getName() %><a
-						class="button" onclick="submit_edit_user('<%= usr.getName() %>')">[edit]</a><%
-							
-							if(!usr.getName().equals("sudo")){
-								
-								%><a class="button" onclick="submit_remove_user('<%= usr.getName() %>')">[remove]</a><%
-								
-							}
-						%></H2>
-					<div class="block">
-						<H2>ACCOUNT :</H2>
-						username : <strong><%= usr.getName() %></strong><br>
-						password : <strong><%= Users.getPassword(usr.getName()) %></strong><br>
-						group : <strong><%= usr.getPermissionsGroup() %></strong>
-					</div>
-					<%
-				}
-				%>
-			</div>
-			<div style="color:red" id="errors"></div>
-			<%
-		}else if(action.equals("users.edit")){
+		if(action.equals("users.edit")){
 			
 			if(user== null){
 				%>
@@ -201,32 +196,55 @@ if(request.getParameter("edit") == null){
 				<%
 			}else{
 				%>
-				<H1>EDIT USER <%= user.getName().toUpperCase() %> </H1>
-				<strong>Name</strong><br>
-				<input type="text" id="username" value="<%= user.getName() %>"/><br>
-				<strong>Password</strong><br>
-				<input type="password" id="password" value="<%= Users.getPassword(user.getName()) %>"/>
-				<button id="trigger_password" onclick="trigger_show_password()">show</button><br>
-				<strong>Group</strong><br>
-				<input type="text" id="group" value="<%= user.getPermissionsGroup() %>"/><br>
-				<button id="submit" onclick="submit_json_user('edit')">OK</button>
-				<input type="hidden" id="oldUser" value="<%= request.getParameter("user") %>"/>
-				<div style="color:red" id="errors"></div>
+				<div class="panel panel-default">
+					<h1 class="panel title">New user</h1>
+					<div class="panel-body">
+						<div class="form-group">
+							<label for="username">Name</label>
+							<input class="form-control" type="text" id="username" placeholder="User name"
+								value="<%= user.getName() %>"/>
+						</div>
+						<div class="form-group">
+							<label for="password">Password</label>
+							<input class="form-control" type="text" id="password" placeholder="Password"
+								value="<%= Users.getPassword(user.getName()) %>"/>
+						</div>
+						<div class="form-group">
+							<label for="group">Group</label>
+							<input class="form-control" type="text" id="group" placeholder="Group name"
+								value="<%= user.getPermissionsGroup() %>"/>
+						</div>
+						<input type="hidden" id="oldUser" value="<%= user.getName() %>"/>
+						<button type="button" class="btn btn-lg btn-primary btn-block"
+								id="send_btn" onclick="submit_json_user('edit')">OK</button>
+						<div class="bs-callout bs-callout-danger" id="errors" style="display:none"></div>
+					</div>
+				</div>
 				<%
 			}
 			
 		}else if(action.equals("users.new")){
 			%>
-			<H1>NEW USER</H1>
-			<strong>Name</strong><br>
-			<input type="text" id="username"/><br>
-			<strong>Password</strong><br>
-			<input type="password" id="password"/>
-			<button id="trigger_password" onclick="trigger_show_password()">show</button><br>
-			<strong>Group</strong><br>
-			<input type="text" id="group"/><br>
-			<button id="submit" onclick="submit_json_user('new')">OK</button><br>
-			<div style="color:red" id="errors"></div>
+			<div class="panel panel-default">
+				<h1 class="panel title">New user</h1>
+				<div class="panel-body">
+					<div class="form-group">
+						<label for="username">Name</label>
+						<input class="form-control" type="text" id="username" placeholder="User name"/>
+					</div>
+					<div class="form-group">
+						<label for="password">Password</label>
+						<input class="form-control" type="text" id="password" placeholder="Password"/>
+					</div>
+					<div class="form-group">
+						<label for="group">Group</label>
+						<input class="form-control" type="text" id="group" placeholder="Group name"/>
+					</div>
+					<button type="button" class="btn btn-lg btn-primary btn-block"
+							id="send_btn" onclick="submit_json_user('new')">OK</button>
+					<div class="bs-callout bs-callout-danger" id="errors" style="display:none"></div>
+				</div>
+			</div>
 			<%
 		}else{
 			
