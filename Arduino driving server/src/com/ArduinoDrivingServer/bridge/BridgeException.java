@@ -18,19 +18,19 @@ public class BridgeException extends Exception {
 	public BridgeException(){super();}
 	
 	/**
-	 * This constructor just a <code>BridgeException</code> with a message.
+	 * This constructor creates a <code>BridgeException</code> with a message.
 	 * @param message The message.
 	 */
 	public BridgeException(String message){super(message);}
 	
 	/**
-	 * This constructor just a <code>BridgeException</code> with a cause.
+	 * This constructor creates a <code>BridgeException</code> with a cause.
 	 * @param cause the cause.
 	 */
 	public BridgeException(Throwable cause){super(cause);}
 	
 	/**
-	 * This constructor just a <code>BridgeException</code> with a massage and a cause.
+	 * This constructor creates a <code>BridgeException</code> with a massage and a cause.
 	 * @param message The message.
 	 * @param cause the cause.
 	 */
