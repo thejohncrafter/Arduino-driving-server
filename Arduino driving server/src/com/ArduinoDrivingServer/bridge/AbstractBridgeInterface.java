@@ -16,9 +16,9 @@ public abstract class AbstractBridgeInterface {
 	private String bridgeName;
 	
 	/**
-	 * This constructor just defines the <code>virtual</code> boolean.
-	 * @param vrtual This boolean is used to know if the created <code>PortBridge</code> is virtual or not.
-	 * @see virtual
+	 * This constructor defines the bridge type (a <code>String</code>).
+	 * @param bridgeType The bridge type.
+	 * @see bridgeName
 	 */
 	public AbstractBridgeInterface(String bridgeType){
 		
