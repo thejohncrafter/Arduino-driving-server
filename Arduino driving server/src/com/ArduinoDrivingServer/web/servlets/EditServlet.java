@@ -272,21 +272,15 @@ public class EditServlet extends HttpServlet {
 					System.out.println("Openeing bridge...");
 					System.out.println("Writing data in bridge.xml...");
 					
-					Element rootNode;
-					
 					try{
 						
-						File bridgesfile = new File(ArduinoDriving.getRealPath("WEB-INF/bridge.xml"));
-						SAXBuilder builder = new SAXBuilder();
-						Document document = (Document) builder.build(bridgesfile);
-						rootNode = document.getRootElement();
-						
-						rootNode.setAttribute("opened", "true");
+						Element rootNode = ArduinoDriving.getConfigElement("bridge");
+						rootNode.getChild("opened").setText("true");
 						
 						XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-						output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/bridge.xml")));
+						output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/bridge.xml")));
 						
-					}catch(IOException | JDOMException e){
+					}catch(IOException | NullPointerException e){
 						
 						System.out.println("Exception :");
 						e.printStackTrace();
@@ -327,17 +321,13 @@ public class EditServlet extends HttpServlet {
 					
 					try{
 						
-						File bridgesfile = new File(ArduinoDriving.getRealPath("WEB-INF/bridge.xml"));
-						SAXBuilder builder = new SAXBuilder();
-						Document document = (Document) builder.build(bridgesfile);
-						Element rootNode = document.getRootElement();
-						
-						rootNode.setAttribute("opened", "false");
+						Element rootNode = ArduinoDriving.getConfigElement("bridge");
+						rootNode.getChild("opened").setText("false");
 						
 						XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-						output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/bridge.xml")));
+						output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/bridge.xml")));
 						
-					}catch(IOException | JDOMException e){
+					}catch(IOException | NullPointerException e){
 						
 						System.out.println("Exception :");
 						e.printStackTrace();

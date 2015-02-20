@@ -1,0 +1,21 @@
+<!DOCTYPE xml>
+<cfg>
+	<bridge>
+		<opened>true</opened>
+	</bridge>
+	<users>
+		<user name="sudo" password="SUDO">
+			<permissions group="sudo" />
+		</user>
+	</users>
+	<permissions>
+		<names>
+			<permission name="administration" />
+			<permission name="userlist" />
+			<permission name="bridge" />
+			<permission name="groups" />
+		</names>
+		<groups>
+		</groups>
+	</permissions>
+</cfg>

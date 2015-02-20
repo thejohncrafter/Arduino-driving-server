@@ -2,18 +2,8 @@ package com.ArduinoDrivingServer.bridge;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashMap;
-import java.util.List;
 
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-
-import com.ArduinoDrivingServer.bridge.USB.USBBridgeInterface;
 import com.ArduinoDrivingServer.web.servlets.ArduinoDriving;
 
 /**
@@ -35,167 +25,24 @@ public class Bridge {
 	 */
 	private static HashMap<String, AbstractBridge> bridges = new HashMap<String, AbstractBridge>();
 	
-	/**s
+	/**
 	 * This field is used by the method <code>isClosed()</code>
 	 */
 	private static boolean closed = true;
 	
 	/**
 	 * This method is used to initialize the <code>Bridge</code>.
-	 * @throws IOException If an error occurates when creating a <code>PortBridge</code> 
+	 * @throws IOException If an error occurs when creating a <code>PortBridge</code> 
 	 * (but should rarely happen).
 	 * @see USBBridgeInterface
 	 */
 	public static void init() throws BridgeException {
 		
-		if(!closed)
-			throw new IllegalStateException("Bridge is already opened !");
-		
-		Element rootNode;
-		
-		try{
-			
-			File bridgesfile = new File(ArduinoDriving.getRealPath("WEB-INF/bridge.xml"));
-			SAXBuilder builder = new SAXBuilder();
-			Document document = (Document) builder.build(bridgesfile);
-			rootNode = document.getRootElement();
-			
-		}catch(IOException | JDOMException e){
-			
-			throw new BridgeException(e);
-			
-		}
-		
-		String opened = rootNode.getAttributeValue("opened");
-		
-		if(opened == null)
-			throw new BridgeException("Missing \"opened\" attribute in Bridge tag (bridge.xml) !");
-		
-		if(opened.equals("false")){
-			
-			System.out.println("Not opening bridge : opened attriute in bridge tag (bridge.xml) isn't true.");
-			return;
-			
-		}else if(!opened.equals("true"))
-			throw new BridgeException("Bad value of \"opened\" attribute in Bridge tag (bridge.xml) !");
-		
-		System.out.println("Opening bridge...");
-		
-		if(!closed)
-			throw new IllegalStateException("Bridge already opened !");
-		
-		List<Element> cfgs = rootNode.getChild("bridges").getChildren();
-		
-		for(int i = 0; i < cfgs.size(); i++){
-			
-			Element cfg = cfgs.get(i);
-			Boolean activated = false;
-			String activated_str = cfg.getAttributeValue("activated");
-			Element classloader = cfg.getChild("classloader");
-			String classname = classloader.getChildText("classname");
-			Class<?> bridgeClass;
-			String name = cfg.getAttributeValue("name");
-			String desc = cfg.getChildText("desc");
-			
-			if(activated_str == null)
-				throw new BridgeException("Error in bridge.xml : in bridge " + i + " : missing activated attribute !");
-			
-			switch(activated_str){
-			
-			case "true" :
-				activated = true;
-				// break;
-			case "false" :
-				// activated = false;
-				break;
-			default:
-				throw new BridgeException("Error in bridge.xml : in bridge " + i + " : state isn't valid !");
-			
-			}
-			
-			if(classname == null)
-				throw new BridgeException("Error in bridge.xml : in bridge " + i + " : in classloader : missing classname !");
-			
-			if(name == null)
-				throw new BridgeException("Error in bridge.xml : in bridge " + i + " : missing attribute name !");
-			
-			if(desc == null)
-				throw new BridgeException("Error in bridge.xml : in bridge " + i + " : missing <desc> child !");
-			
-			switch(classloader.getAttributeValue("type")){
-			
-			case "JAR" :
-				{
-					
-					String file = classloader.getChildText("file");
-					
-					if(file == null)
-						throw new BridgeException("Error in bridge.xml : in bridge " + i + " : in classloader : missing file !");
-					
-					try{
-						
-						URLClassLoader loader = new URLClassLoader(new URL[]{new File(ArduinoDriving.getRealPath("/WEB-INF/bridges/" + file))
-															.toURI().toURL()}, Bridge.class.getClassLoader());
-						bridgeClass = Class.forName(classname, true, loader);
-						
-					}catch(ClassNotFoundException | MalformedURLException e){
-						
-						throw new BridgeException("Error in bridge.xml : in bridge " + i + " : in classloader : in classname : Can't load !", e);
-						
-					}
-					
-				}
-				break;
-			case "NATIVE" :
-				{
-					
-					try{
-						
-						bridgeClass = Class.forName(classname);
-						
-					}catch(ClassNotFoundException e){
-						
-						throw new BridgeException("Error in bridge.xml : in bridge " + i + " : in classloader : in classname : no such class !", e);
-						
-					}
-					
-				}
-				break;
-			default :
-				throw new BridgeException("Error in bridge.xml : in bridge " + i + " : in classloader : type isn't valid !");
-			
-			}
-			
-			AbstractBridge bridge;
-			
-			try{
-				
-				bridge = (AbstractBridge) bridgeClass.newInstance();
-				
-			}catch(InstantiationException | IllegalAccessException | IllegalArgumentException | ClassCastException e){
-				
-				throw new BridgeException("Can't instantiate " + bridgeClass.getName(), e);
-				
-			}
-			
-			bridge.setName(name);
-			bridge.setDesc(desc);
-			bridge.setActivated(activated);
-			
-			bridges.put(name, bridge);
-			
-			if(activated){
-				
-				System.out.println("Initializing bridge" + name + "...");
-				
-				initBridge(bridge);
-				
-			}
-			
-		}
-		
-		System.out.println("Done.");
 		closed = false;
+		String[] bridgesKeys = bridges.keySet().toArray(new String[bridges.size()]);
+		
+		for(String key : bridgesKeys)
+			bridges.get(key).init();
 		
 	}
 	
@@ -220,9 +67,7 @@ public class Bridge {
 		String[] bridgesKeys = bridges.keySet().toArray(new String[bridges.size()]);
 		
 		for(String key : bridgesKeys)
-			bridges.remove(key).destroy();
-		
-		Bridge.ifaces.clear();
+			bridges.get(key).destroy();
 		
 		System.out.println("Successful !");
 		
@@ -295,9 +140,9 @@ public class Bridge {
 	 * This method is used to change the name of a given AbstractBridge to a given name.
 	 * <div style="color:red;">This method does not edit bridge.xml !</div>
 	 * @param bridge The bridge where changing name.
-	 * @param name The new name.
+	 * @param id The new name.
 	 */
-	public static void changeBridgeName(AbstractBridge bridge, String name){
+	public static void changeBridgeName(AbstractBridge bridge, String id){
 		
 		String[] keys = ifaces.keySet().toArray(new String[ifaces.size()]);
 		
@@ -307,13 +152,13 @@ public class Bridge {
 			
 			if(iface.getBridgeName().equals(bridge.getName())){
 				
-				ifaces.get(key).setBridgeName(name);
+				ifaces.get(key).setBridgeName(id);
 				
 			}
 			
 		}
 		
-		bridge.setName(name);
+		bridge.setName(id);
 		
 	}
 	

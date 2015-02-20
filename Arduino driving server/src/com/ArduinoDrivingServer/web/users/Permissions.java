@@ -1,16 +1,13 @@
 package com.ArduinoDrivingServer.web.users;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
@@ -76,13 +73,9 @@ public class Permissions {
 	 */
 	private static void loadPermissions() throws JDOMException, IOException{
 		
-		System.out.println("Loading all permission names form /WEB-INF/permissions.xml...");
+		System.out.println("Loading all permission names form /WEB-INF/ADS-cfg.xml...");
 		
-		File permFile = new File(ArduinoDriving.getRealPath("WEB-INF/permissions.xml"));
-		SAXBuilder builder = new SAXBuilder();
-		Document document = (Document) builder.build(permFile);
-		Element rootNode = document.getRootElement();
-		
+		Element rootNode = ArduinoDriving.getConfigElement("permissions");
 		List<Element> perms = rootNode.getChild("names").getChildren();
 		permissionNames = new String[perms.size()];
 		
@@ -105,13 +98,9 @@ public class Permissions {
 	 */
 	private static void loadGroups() throws JDOMException, IOException{
 		
-		System.out.println("Loading permission groups from /WEB-INF/permissions.xml...");
+		System.out.println("Loading permission groups from /WEB-INF/ADS-cfg.xml...");
 		
-		File permFile = new File(ArduinoDriving.getRealPath("WEB-INF/permissions.xml"));
-		SAXBuilder builder = new SAXBuilder();
-		Document document = (Document) builder.build(permFile);
-		Element rootNode = document.getRootElement();
-		
+		Element rootNode = ArduinoDriving.getConfigElement("permissions");
 		List<Element> groups = rootNode.getChild("groups").getChildren();
 		
 		for(int i = 0; i < groups.size(); i++){
@@ -205,11 +194,7 @@ public class Permissions {
 		groupNames.put(groups.size(), name);
 		groups.put(groups.size(), perms);
 		
-		File permFile = new File(ArduinoDriving.getRealPath("WEB-INF/permissions.xml"));
-		SAXBuilder builder = new SAXBuilder();
-		Document document = (Document) builder.build(permFile);
-		Element rootNode = document.getRootElement();
-		
+		Element rootNode =  ArduinoDriving.getConfigElement("permissions");
 		List<Element> groups = rootNode.getChild("groups").getChildren();
 		Element group = new Element("group");
 		String[] keys = perms.keySet().toArray(new String[perms.size()]);
@@ -229,7 +214,7 @@ public class Permissions {
 		groups.add(group);
 		
 		XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-		output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/permissions.xml")));
+		output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml")));
 		
 	}
 	
@@ -244,10 +229,7 @@ public class Permissions {
 		groups.remove(getGroupIndex(name));
 		groupNames.remove(getGroupIndex(name));
 		
-		File permFile = new File(ArduinoDriving.getRealPath("WEB-INF/permissions.xml"));
-		SAXBuilder builder = new SAXBuilder();
-		Document document = (Document) builder.build(permFile);
-		Element rootNode = document.getRootElement();
+		Element rootNode =  ArduinoDriving.getConfigElement("permissions");
 		
 		List<Element> groups = rootNode.getChild("groups").getChildren();
 		
@@ -259,7 +241,7 @@ public class Permissions {
 		}
 		
 		XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-		output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/permissions.xml")));
+		output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml")));
 		
 	}
 	

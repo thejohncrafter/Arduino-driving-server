@@ -1,5 +1,6 @@
 package com.ArduinoDrivingServer.web.servlets;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.servlet.ServletConfig;
@@ -8,10 +9,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jdom2.Document;
+import org.jdom2.Element;
 import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
 import com.ArduinoDrivingServer.bridge.Bridge;
 import com.ArduinoDrivingServer.bridge.BridgeException;
+import com.ArduinoDrivingServer.plugins.PluginException;
+import com.ArduinoDrivingServer.plugins.Plugins;
 import com.ArduinoDrivingServer.web.users.Permissions;
 import com.ArduinoDrivingServer.web.users.Users;
 
@@ -39,6 +45,11 @@ public class ArduinoDriving extends HttpServlet {
 	 */
 	private static ArduinoDriving instance;
 	
+	/**
+	 * This field stores the configuration element (from ADS-cfg.xml).
+	 */
+	private static Element cfgElem;
+	
 	public void init(ServletConfig config) throws ServletException{
 		
 		cfg = config;
@@ -52,6 +63,25 @@ public class ArduinoDriving extends HttpServlet {
 		System.out.println("|20 october 2014       |");
 		System.out.println("========================");
 		
+		System.out.println("Loading ADS-cfg.xml...");
+		
+		try{
+			
+			File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml"));
+			SAXBuilder builder = new SAXBuilder();
+			Document document = (Document) builder.build(usrFile);
+			cfgElem = document.getRootElement();
+			
+		}catch(IOException | JDOMException e){
+			
+			System.out.println("Can't load ADS-cfg.xml :");
+			e.printStackTrace();
+			System.out.println("Load of Arduino driving server canceled.");
+			return;
+			
+		}
+		
+		System.out.println("Done.");
 		System.out.println("Loading users...");
 		
 		try {
@@ -61,28 +91,58 @@ public class ArduinoDriving extends HttpServlet {
 			
 		} catch (JDOMException | IOException e) {
 			
-			System.out.println("An exception has occured while loading users :");
-			e.printStackTrace();
-			System.out.println("Exiting...");
-			return;
+			throw new ServletException(e);
 			
 		}
 		
 		System.out.println("Done.");
+		System.out.println("Loading plugins...");
 		
-		System.out.println("Initializing bridge...");
-		
-		try {
+		try{
 			
-			Bridge.init();
+			Plugins.load();
 			
-		} catch (BridgeException e) {
+		}catch(PluginException e){
 			
 			throw new ServletException(e);
 			
 		}
 		
 		System.out.println("Done.");
+		System.out.println("Initializing bridge...");
+		
+		try {
+			
+			if(cfgElem.getChild("bridge").getChildText("opened").equals("true")){
+				
+				Bridge.init();
+				
+			}
+			
+		} catch (BridgeException e) {
+			
+			throw new ServletException(e);
+			
+		} catch(NullPointerException e){
+			
+			System.out.println("Bad configuration of ADS-cfg.xml : missing element(s) !");
+			
+		}
+		
+		System.out.println("Done.");
+		System.out.println("Done loading Arduino driving server.");
+		
+	}
+	
+	/**
+	 * This method is used to get the config element having a given name
+	 * (from ADS-cfg.xml).
+	 * @param name The name of the config element to get.
+	 * @return The config element (or <code>null</code> if it doesn't exist.
+	 */
+	public static Element getConfigElement(String name){
+		
+		return cfgElem.getChild(name);
 		
 	}
 	

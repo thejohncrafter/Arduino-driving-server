@@ -197,7 +197,7 @@ if(request.getParameter("edit") == null){
 			}else{
 				%>
 				<div class="panel panel-default">
-					<h1 class="panel title">New user</h1>
+					<h1 class="panel title">Edit user <%= user.getName() %></h1>
 					<div class="panel-body">
 						<div class="form-group">
 							<label for="username">Name</label>

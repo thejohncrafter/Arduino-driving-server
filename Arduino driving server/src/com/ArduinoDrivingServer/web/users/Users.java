@@ -1,16 +1,13 @@
 package com.ArduinoDrivingServer.web.users;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
@@ -43,14 +40,9 @@ public class Users {
 	 */
 	public static void load() throws JDOMException, IOException{
 		
-		System.out.println("Loading all users form /WEB-INF/users.xml...");
+		System.out.println("Loading all users form /WEB-INF/ADS-cfg.xml...");
 		
-		File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
-		SAXBuilder builder = new SAXBuilder();
-		Document document = (Document) builder.build(usrFile);
-		Element rootNode = document.getRootElement();
-		
-		List<?> usersList = rootNode.getChildren();
+		List<?> usersList = ArduinoDriving.getConfigElement("users").getChildren();
 		
 		for(int i = 0; i < usersList.size(); i++){
 			
@@ -92,10 +84,7 @@ public class Users {
 		users.put(u.getId(), u);
 		passwords.put(u.getId(), password);
 		
-		File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
-		SAXBuilder builder = new SAXBuilder();
-		Document document = (Document) builder.build(usrFile);
-		Element rootNode = document.getRootElement();
+		Element rootNode = ArduinoDriving.getConfigElement("users");
 		
 		Element usrElem = new Element("user");
 		usrElem.setAttribute("name", name);
@@ -108,7 +97,7 @@ public class Users {
 		rootNode.addContent(usrElem);
 		
 		XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-		output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
+		output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml")));
 		
 	}
 	
@@ -131,12 +120,7 @@ public class Users {
 				
 				users.get(index).setName(newUsername);
 				
-				File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
-				SAXBuilder builder = new SAXBuilder();
-				Document document = (Document) builder.build(usrFile);
-				Element rootNode = document.getRootElement();
-				
-				List<Element> allUsers = rootNode.getChildren();
+				List<Element> allUsers = ArduinoDriving.getConfigElement("users").getChildren();
 				
 				for(int i = 0; i < allUsers.size(); i++){
 					
@@ -151,7 +135,8 @@ public class Users {
 				}
 				
 				XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-				output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
+				output.output(ArduinoDriving.getConfigElement("users").getDocument(),
+						new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml")));
 				
 			}
 			
@@ -177,12 +162,8 @@ public class Users {
 				users.remove(index);
 				passwords.remove(index);
 				
-				File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
-				SAXBuilder builder = new SAXBuilder();
-				Document document = (Document) builder.build(usrFile);
-				Element rootNode = document.getRootElement();
-				
-				List<Element> allUsers = rootNode.getChildren();
+				Element rootNode = ArduinoDriving.getConfigElement("users");
+				List<Element> allUsers = ArduinoDriving.getConfigElement("users").getChildren();
 				
 				for(int i = 0; i < allUsers.size(); i++){
 					
@@ -197,7 +178,7 @@ public class Users {
 				}
 				
 				XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-				output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
+				output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml")));
 				
 			}
 			
@@ -222,11 +203,7 @@ public class Users {
 				
 				passwords.put(index, password);
 				
-				File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
-				SAXBuilder builder = new SAXBuilder();
-				Document document = (Document) builder.build(usrFile);
-				Element rootNode = document.getRootElement();
-				
+				Element rootNode = ArduinoDriving.getConfigElement("users");
 				List<Element> allUsers = rootNode.getChildren();
 				
 				for(int i = 0; i < allUsers.size(); i++){
@@ -242,7 +219,7 @@ public class Users {
 				}
 				
 				XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-				output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
+				output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/ADS-cfg.xml")));
 				
 			}
 			
@@ -266,11 +243,8 @@ public class Users {
 			if(users.get(index).getName().equals(user)){
 				
 				users.get(index).setPermissionsGroup(group);
-				File usrFile = new File(ArduinoDriving.getRealPath("WEB-INF/users.xml"));
-				SAXBuilder builder = new SAXBuilder();
-				Document document = (Document) builder.build(usrFile);
-				Element rootNode = document.getRootElement();
 				
+				Element rootNode = ArduinoDriving.getConfigElement("users");
 				List<Element> allUsers = rootNode.getChildren();
 				
 				for(int i = 0; i < allUsers.size(); i++){
@@ -286,7 +260,7 @@ public class Users {
 				}
 				
 				XMLOutputter output = new XMLOutputter(Format.getPrettyFormat());
-				output.output(document, new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
+				output.output(rootNode.getDocument(), new FileOutputStream(ArduinoDriving.getRealPath("WEB-INF/users.xml")));
 				
 			}
 			

@@ -173,7 +173,7 @@
 											<div class="panel panel-default">
 												<div class="panel-heading panel-title">
 													<ADS:ifPerm permission="bridge" minValue="ALL">
-														<a class="btn btn-default" onclick="submit_edit_bridge('<%= bridge.getName() %>')"
+														<a class="btn btn-default" onclick="submit_edit_bridge('<%= bridge.getId() %>')"
 															title="Edit this bridge">
 															<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
 														</a>

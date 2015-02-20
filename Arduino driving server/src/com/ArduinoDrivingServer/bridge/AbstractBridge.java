@@ -32,6 +32,11 @@ public abstract class AbstractBridge {
 	private String desc;
 	
 	/**
+	 * This field stores the bridge's ID.
+	 */
+	private String id;
+	
+	/**
 	 * This method is used to setup the bridge.
 	 * @return The created <code>AbstractBridgeInterface</code>s.
 	 */
@@ -90,5 +95,17 @@ public abstract class AbstractBridge {
 	 * @see destroy
 	 */
 	public final void setActivated(boolean activated) {this.activated = activated;}
+	
+	/**
+	 * This method is used to get the bridge's ID (found in <code>bridge.xml</code>).
+	 * @return The bridge's ID.
+	 */
+	public String getId() {return id;}
+	
+	/**
+	 * This method is used to set the bridge's ID (found in <code>bridge.xml</code>).
+	 * @param id The bridge's ID.
+	 */
+	public void setId(String id) {this.id = id;}
 	
 }
