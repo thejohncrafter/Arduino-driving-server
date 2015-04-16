@@ -67,11 +67,11 @@ public class SessionServlet extends HttpServlet {
 				
 				System.out.println("Someone attemps to connect with username \"" + name + "\" and password \"" + password + "\".");
 				
-				user = Users.getUser(name);
+				user = Users.getInstance().getUser(name);
 				
 				if(user != null){
 					
-					if(password.equals(Users.getPassword(name))){
+					if(password.equals(Users.getInstance().getPassword(name))){
 						
 						System.out.println("Someone is connected as " + name + " !");
 						

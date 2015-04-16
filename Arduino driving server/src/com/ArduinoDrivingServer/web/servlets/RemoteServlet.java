@@ -17,7 +17,6 @@ import org.json.JSONStringer;
 import com.ArduinoDrivingServer.bridge.AbstractBridgeInterface;
 import com.ArduinoDrivingServer.bridge.Bridge;
 
-
 /**
  * This servlet is the main servlet of the program.
  * 
@@ -25,130 +24,152 @@ import com.ArduinoDrivingServer.bridge.Bridge;
  *
  */
 public class RemoteServlet extends HttpServlet {
-	
+
 	/**
 	 * Used by Serializable.
 	 */
 	private static final long serialVersionUID = 944893213980199371L;
-	
+
 	/**
 	 * Used by the <code>Servlet</code> system.
 	 */
 	private ServletConfig cfg;
-	
-	public void init(ServletConfig config) throws ServletException{
-		
+
+	public void init(ServletConfig config) throws ServletException {
+
 		cfg = config;
-		
+
 	}
-	
-	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		if(request.getSession().getAttribute("user") != null){
-			
+
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		if (request.getSession().getAttribute("user") != null) {
+
 			BufferedReader reader = request.getReader();
 			PrintWriter out = response.getWriter();
-			
+
 			response.setContentType("application/json");
-		    response.setCharacterEncoding("UTF-8");
-			
+			response.setCharacterEncoding("UTF-8");
+
 			String params = "";
 			String line;
-			
-			while((line = reader.readLine()) != null)
+
+			while ((line = reader.readLine()) != null)
 				params += line;
-			
-			try{
-				
+
+			try {
+
 				JSONStringer stringer = new JSONStringer();
-				JSONObject object = new JSONObject(params); // will go outside try if this isn't readable JSON data
-				
+				JSONObject object = new JSONObject(params); // will go outside
+															// try if this isn't
+															// readable JSON
+															// data
+
 				String reqType = object.getString("action");
-				
-				if(reqType != null){
-					
-					switch(reqType){
-					
-					case "SEND" :
-						{
-							
-							String port = object.getString("port");
-							String data = object.getString("data");
-							
-							// optional datas
-							boolean wait = false;
-							long timeout = -1;
-							
-							try{
-								
-								wait = object.getBoolean("wait");
-								timeout = object.getLong("timeout");
-								
-							}catch(JSONException e){ /* don't care */}
-							
-							AbstractBridgeInterface bridge = Bridge.getPortBridge(port);
-							
-							if(bridge == null){
-								
-								out.print("{\"error\":\"There is any bridge matching to the given port name.\"}");
-								break;
-								
-							}
-							
-							try{
-								
-								if(wait){
-									
-									if(timeout == -1)
-										out.print(stringer.object().key("answer").value(bridge.readLine(data)).endObject().toString());
-									else
-										out.print(stringer.object().key("answer").value(bridge.readLine(data, timeout)).endObject().toString());
-									
-								}else{
-									
-									bridge.send(data);
-									out.print("{\"answer\":\"Sent.\"}");
-									
-								}
-								
-							}catch(Exception e){
-								
-								out.print(stringer.object().key("error").value("Error when sending : " + e.getMessage()).endObject().toString());
-								break;
-								
-							}
-							
+
+				if (reqType != null) {
+
+					switch (reqType) {
+
+					case "SEND": {
+
+						String port = object.getString("port");
+						String data = object.getString("data");
+
+						// optional datas
+						boolean wait = false;
+						long timeout = -1;
+
+						try {
+
+							wait = object.getBoolean("wait");
+							timeout = object.getLong("timeout");
+
+						} catch (JSONException e) { /* don't care */
 						}
-						break;
-					
+
+						AbstractBridgeInterface bridge = Bridge.getInstance()
+								.getPortBridge(port);
+
+						if (bridge == null) {
+
+							out.print("{\"error\":\"There is any bridge matching to the given port name.\"}");
+							break;
+
+						}
+
+						try {
+
+							if (wait) {
+
+								if (timeout == -1)
+									out.print(stringer.object().key("answer")
+											.value(bridge.readLine(data))
+											.endObject().toString());
+								else
+									out.print(stringer
+											.object()
+											.key("answer")
+											.value(bridge.readLine(data,
+													timeout)).endObject()
+											.toString());
+
+							} else {
+
+								bridge.send(data);
+								out.print("{\"answer\":\"Sent.\"}");
+
+							}
+
+						} catch (Exception e) {
+
+							out.print(stringer
+									.object()
+									.key("error")
+									.value("Error when sending : "
+											+ e.getMessage()).endObject()
+									.toString());
+							break;
+
+						}
+
 					}
-					
-				}else{
-					
+						break;
+
+					}
+
+				} else {
+
 					out.print("{\"error\":\"Missing reqType.\"}");
-					
+
 				}
-				
-			}catch(JSONException e){
-				
-				out.print("{\"error\":\"" + e.getMessage().replace("\"", "\\\"").replace("\n", "\\n") + "\"}"); // replace " by \"
-				
+
+			} catch (JSONException e) {
+
+				out.print("{\"error\":\""
+						+ e.getMessage().replace("\"", "\\\"")
+								.replace("\n", "\\n") + "\"}"); // replace " by
+																// \"
+
 			}
-			
-		}else{
-			
+
+		} else {
+
 			response.getWriter().print("{\"error\":\"Not connected.\"}");
-			
+
 		}
-		
+
 	}
-	
-	public String getServletInfo(){
-		
+
+	public String getServletInfo() {
+
 		return "Part of Arduino driving server - used as a remote.";
-		
+
 	}
-	
-	public ServletConfig getServletConfig(){ return cfg; }
-	
+
+	public ServletConfig getServletConfig() {
+		return cfg;
+	}
+
 }

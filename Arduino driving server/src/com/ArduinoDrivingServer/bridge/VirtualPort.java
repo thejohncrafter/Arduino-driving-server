@@ -43,7 +43,7 @@ public class VirtualPort extends AbstractBridgeInterface {
 		this.portName = portName;
 		this.hid = hid;
 		
-		Bridge.addPortBridge(this);
+		Bridge.getInstance().addPortBridge(this);
 		
 	}
 	
@@ -62,7 +62,7 @@ public class VirtualPort extends AbstractBridgeInterface {
 		this.hid = hid;
 		this.logFile = logFile;
 		
-		Bridge.addPortBridge(this);
+		Bridge.getInstance().addPortBridge(this);
 		
 	}
 

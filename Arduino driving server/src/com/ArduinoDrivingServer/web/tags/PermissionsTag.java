@@ -55,7 +55,7 @@ public class PermissionsTag implements Tag {
 		
 		if(user != null){
 			
-			if(Permissions.getPermission(user, permission) >= minVal){
+			if (Permissions.getInstance().getPermission(user, permission) >= minVal){
 				
 				if(!invert)
 					return EVAL_BODY_INCLUDE;
