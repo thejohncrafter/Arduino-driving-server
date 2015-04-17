@@ -39,10 +39,11 @@ public class Users {
 
 	/**
 	 * Used for making a singleton.<br>
-	 * Loads all the users from the config file and stores it in <code>users</code>.
+	 * Loads all the users from the config file and stores it in
+	 * <code>users</code>.
 	 */
 	private Users() {
-		
+
 		System.out.println("Loading all users form /WEB-INF/ADS-cfg.xml...");
 
 		List<?> usersList = ArduinoDriving.getConfigElement("users")
@@ -69,7 +70,7 @@ public class Users {
 		}
 
 		System.out.println("Done loading users.");
-		
+
 	}
 
 	/**
@@ -393,7 +394,8 @@ public class Users {
 	/**
 	 * Used to access the instance.
 	 * 
-	 * @return The instance (if it isn't null, else it will create and return it).
+	 * @return The instance (if it isn't null, else it will create and return
+	 *         it).
 	 */
 	public static Users getInstance() {
 

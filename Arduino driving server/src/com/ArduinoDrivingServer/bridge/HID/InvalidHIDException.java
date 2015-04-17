@@ -7,21 +7,27 @@ package com.ArduinoDrivingServer.bridge.HID;
  *
  */
 public class InvalidHIDException extends Exception {
-	
+
 	/**
 	 * Used by Serializable.
 	 */
 	private static final long serialVersionUID = 8451156024355923056L;
-	
+
 	/**
 	 * This constructor defines the message of the exception.
-	 * @param message The message.
+	 * 
+	 * @param message
+	 *            The message.
 	 */
-	public InvalidHIDException(String message){super(message);}
-	
+	public InvalidHIDException(String message) {
+		super(message);
+	}
+
 	/**
 	 * This constructor just creates the exception.
 	 */
-	public InvalidHIDException(){super();};
-	
+	public InvalidHIDException() {
+		super();
+	};
+
 }
